@@ -3,6 +3,7 @@
 import argparse
 import os
 import sys
+from . import __version__
 from .config import Colors, search_config
 from .core import (
     setup_database, parse_search_query, search_exact, search_fuzzy, 
@@ -97,6 +98,8 @@ def main():
                        help='Force pagination off even when config pagination=True')
     parser.add_argument('-c', '--config', action='store_true',
                        help='Launch interactive configuration wizard')
+    parser.add_argument('-v', '--version', action='version', version=f'ordb {__version__}',
+                       help='Show version information')
     
     args = parser.parse_args()
     

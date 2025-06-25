@@ -7,18 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-06-25
+
+### Added
+- **Version Flag**: Added `-v` and `--version` command-line flags to display ordb version
+
 ### Fixed
-- **Test Suite Improvements**: Comprehensive cleanup of test suite
-  - Removed obsolete tests for missing modules and old functionality
+- **Test Suite Improvements**: Comprehensive cleanup and modernization
+  - Removed obsolete tests for missing modules and deprecated functionality
   - Fixed database paths to use user directory (~/.ordb/articles.db)
-  - Updated command execution to use modern uv installation
+  - Updated command execution to use modern uv installation (`uv run ordb`)
   - Fixed ANSI color code handling in test assertions
   - Added --no-paginate flag to prevent pagination issues in tests
   - Fixed character replacement and output formatting tests
-  - Improved test success rate from 78% to 92% (73/79 tests passing)
-- **Documentation**: Added comprehensive test suite documentation in tests/README.md
+  - Created comprehensive test_comprehensive_functionality.py with 21 tests
+  - **Achieved 100% test success rate (79/79 tests passing)**
+- **PyPI Package Preparation**: Complete packaging setup for distribution
+  - Fixed pyproject.toml entry point for proper installation
+  - Updated license format to modern SPDX expression (MIT)
+  - Removed deprecated license classifiers
+  - Verified MANIFEST.in includes all necessary files
+  - Successfully tested package building and installation
+- **Documentation**: Enhanced project documentation
+  - Added comprehensive test suite documentation in tests/README.md
+  - Moved CLAUDE.md to docs/CLAUDE.md for better organization
+  - Updated README files with current installation and testing instructions
 
-## [0.2.0] - 2024-06-24
+## [0.2.0] - 2025-06-24
 
 ### Added
 - Initial release of ordb - Norwegian dictionary search tool

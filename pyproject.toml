@@ -4,18 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ordb"
-version = "1.0.0"
-description = "A fast, feature-rich command-line tool for searching the comprehensive Norwegian Bokmål dictionary"
+version = "0.3.0"
+description = "A fast, feature-rich command-line tool for searching the Norwegian Bokmål dictionary provided by ordbokene.no"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
-license-files = ["LICENSE.md"]
+license-files = ["LICENSE"]
 authors = [
     {name = "Konrad M. Lawson"}
 ]
-keywords = ["norwegian", "dictionary", "language", "search", "cli", "bokmål"]
+keywords = ["norwegian", "dictionary", "language", "search", "cli", "norsk", "bokmål"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
