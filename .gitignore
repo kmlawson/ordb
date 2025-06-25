@@ -1,0 +1,38 @@
+# Large source files (keep the database for distribution)
+articles.json
+concepts.json
+scrape_progress.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution files
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# IDEs and editors
+.DS_Store
+.claude/
+.idea/
+.vscode/
+
+# Archive directories
+old/
+
+# Local config files
+.config-bm
+.config-ordb
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

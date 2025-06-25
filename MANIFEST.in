@@ -1,0 +1,29 @@
+# Include the README and other documentation files
+include README.md
+include LICENSE.md
+include CHANGELOG.md
+
+# Include configuration files
+include pyproject.toml
+include .config-bm
+
+# Include the compressed database file for distribution
+include db/articles.db.gz
+recursive-include db *.gz *.json *.py
+
+# Include all source files
+recursive-include src *.py
+
+# Include tests
+recursive-include tests *.py
+include tests/README.md
+
+# Include database scripts
+recursive-include db *.py
+
+# Exclude unnecessary files
+exclude .gitignore
+exclude *.pyc
+recursive-exclude . __pycache__
+recursive-exclude . *.py[co]
+recursive-exclude . .DS_Store

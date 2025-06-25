@@ -1,0 +1,37 @@
+# This is a template for the Homebrew formula
+# Replace placeholders with actual values when preparing for Homebrew distribution
+
+class Ordb < Formula
+  include Language::Python::Virtualenv
+
+  desc "Fast, feature-rich command-line tool for searching Norwegian Bokmål dictionary"
+  homepage "https://github.com/yourusername/ordb"
+  url "https://files.pythonhosted.org/packages/source/o/ordb/ordb-1.0.0.tar.gz"
+  sha256 "SHA256_HASH_PLACEHOLDER"
+  license "MIT"
+
+  depends_on "python@3.11"
+
+  resource "articles.db" do
+    url "https://github.com/yourusername/ordb/releases/download/v1.0.0/articles.db"
+    sha256 "DATABASE_SHA256_PLACEHOLDER"
+  end
+
+  def install
+    virtualenv_install_with_resources
+
+    # Install the database file
+    resource("articles.db").stage do
+      (share/"ordb").install "articles.db"
+    end
+
+    # Create wrapper script that knows where to find the database
+    (bin/"ordb").write_env_script libexec/"bin/ordb", :ORDB_DB_PATH => share/"ordb/articles.db"
+  end
+
+  test do
+    system bin/"ordb", "--help"
+    # Add more specific tests when ready
+    system bin/"ordb", "gå", "--no-paginate", "--limit", "1"
+  end
+end
