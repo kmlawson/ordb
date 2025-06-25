@@ -8,18 +8,15 @@ class TestCharacterReplacement(unittest.TestCase):
     
     def setUp(self):
         """Set up test environment."""
-        # Use python -m instead of symbolic link
-        self.search_cmd = ['python', '-m', 'src.ordb']
-        # Use relative path to database from project root
-        self.db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'articles.db')
+        # Use modern uv run command
+        self.search_cmd = ['uv', 'run', 'ordb']
+        # Use user database location (default for ordb)
+        self.db_path = os.path.expanduser('~/.ordb/articles.db')
     
     def run_search(self, query, *args):
         """Run search command and return output."""
-        cmd = self.search_cmd + list(args) + ['--db', self.db_path, query]
-        # Set PYTHONPATH to parent directory so src.ordb can be found
-        env = os.environ.copy()
-        env['PYTHONPATH'] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+        cmd = self.search_cmd + list(args) + [query]
+        result = subprocess.run(cmd, capture_output=True, text=True)
         return result.stdout
     
     def clean_ansi(self, text):

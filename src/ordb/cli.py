@@ -1,6 +1,7 @@
 """Command-line interface for ordb."""
 
 import argparse
+import os
 import sys
 from .config import Colors, search_config
 from .core import (

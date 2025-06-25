@@ -8,7 +8,8 @@ version = "1.0.0"
 description = "A fast, feature-rich command-line tool for searching the comprehensive Norwegian Bokmål dictionary"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE.md"}
+license = "MIT"
+license-files = ["LICENSE.md"]
 authors = [
     {name = "Konrad M. Lawson"}
 ]
@@ -19,7 +20,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
     "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: Norwegian",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -35,14 +35,13 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/yourusername/ordb"
-Documentation = "https://docs.ordb.no"
-Repository = "https://github.com/yourusername/ordb.git"
-Issues = "https://github.com/yourusername/ordb/issues"
-Changelog = "https://github.com/yourusername/ordb/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/kmlawson/ordb"
+Repository = "https://github.com/kmlawson/ordb.git"
+Issues = "https://github.com/kmlawson/ordb/issues"
+Changelog = "https://github.com/kmlawson/ordb/blob/main/CHANGELOG.md"
 
 [project.scripts]
-ordb = "ordb.cli:main"
+ordb = "src.ordb.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -110,3 +109,9 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-cov>=5.0.0",
+]

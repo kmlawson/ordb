@@ -15,21 +15,21 @@ A fast, feature-rich command-line tool for searching the comprehensive Norwegian
 
 ## Installation
 
-### Using pip (recommended)
+### Using pip
 ```bash
 pip install ordb
 ```
 
-### Using uv (faster)
+### Using uv (recommended)
 ```bash
-uv add ordb
+uv tool install ordb
 ```
 
 ### From source
 ```bash
-git clone https://github.com/yourusername/ordb.git
+git clone https://github.com/kmlawson/ordb.git
 cd ordb
-pip install -e .
+uv tool install --editable .
 ```
 
 ## Quick Start

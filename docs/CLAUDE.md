@@ -1,8 +1,14 @@
-- Read README.md for overview of this softare. 
+# Claude Code Guidelines
+
+- This tool ordb was created in June, 2025 by Claude Code with Konrad Lawson at the controls
+- This file contains guidelines for Claude Code to keep in context as it works with the files:
+
+- Read README.md for overview of this software. 
 - Directory structure to adhere to requirements of PyPi
-- Database related files and scripts in directory db
-- Documentation related files in directory docs
-- Tests available in directory tests
+- Database related files and scripts in directory db/
+- Documentation related files in directory docs/
+- Tests available in directory tests/
+- Main scripts in src/
 - Whenever you fix, add, or change things, be sure to update the CHANGELOG. 
 - When commiting to git, make appropriate version bumps (minor and match) according to semantic versioning principals. Confirm with user when doing this. 
 - We are never at 1.0 until the user explicitly says we are. 

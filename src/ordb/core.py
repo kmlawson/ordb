@@ -122,7 +122,7 @@ def extract_bundled_database():
             # No bundled database found
             return None
         
-        print(f"{Colors.BRIGHT}Setting up ordb dictionary database...{Colors.END}")
+        print(f"{Colors.BOLD}Setting up ordb dictionary database...{Colors.END}")
         print()
         print(f"{Colors.WARNING}⚠️  This will extract a large dictionary database to ~/.ordb/{Colors.END}")
         print(f"   • Compressed size: ~21 MB")

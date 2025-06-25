@@ -1,7 +1,6 @@
 # Large source files (keep the database for distribution)
-articles.json
-concepts.json
-scrape_progress.json
+db/articles.json
+db/articles.db
 
 # Python cache
 __pycache__/
@@ -36,3 +35,6 @@ old/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Development documentation (not for public repo)
+README-DEV.md

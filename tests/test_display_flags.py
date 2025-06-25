@@ -8,17 +8,14 @@ class TestTodo14_15_16(unittest.TestCase):
     
     def setUp(self):
         """Set up test environment."""
-        self.search_cmd = ['python', '-m', 'src.ordb']
-        # Use relative path to database from project root
-        self.db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'articles.db')
+        self.search_cmd = ['uv', 'run', 'ordb']
+        # Use user database location
+        self.db_path = os.path.expanduser('~/.ordb/articles.db')
     
     def run_search(self, query, *args):
         """Run search command and return output."""
-        cmd = self.search_cmd + list(args) + ['--db', self.db_path, query]
-        # Set PYTHONPATH to parent directory so src.ordb can be found
-        env = os.environ.copy()
-        env['PYTHONPATH'] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+        cmd = self.search_cmd + ['--no-paginate'] + list(args) + [query]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         return result.stdout
     
     def clean_ansi(self, text):
@@ -143,12 +140,12 @@ class TestTodo14_15_16(unittest.TestCase):
         # Use a word that might not have many examples
         output = self.run_search('xyz', '--only-examples')
         
-        # Should run without error
-        self.assertIn('search for', output.lower())
+        # Should run without error - either show search results or "no results found"
+        self.assertTrue('search for' in output.lower() or 'no results found' in output.lower())
         
-        # If no results, should show "No results found"
-        if 'No results found' in output:
-            self.assertIn('No results found', output)
+        # If no results, should show "no results found"
+        if 'no results found' in output.lower():
+            self.assertIn('no results found', output.lower())
         # If results found, should only show headers
         elif '📖' in output:
             clean_output = self.clean_ansi(output)

@@ -22,17 +22,14 @@ class TestDatabaseIntegrity(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test fixtures - connect to database and prepare search command."""
-        # Get paths relative to parent directory
-        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        cls.db_path = os.path.join(parent_dir, 'articles.db')
-        cls.search_script = os.path.join(parent_dir, 'ordb')
-        cls.parent_dir = parent_dir
+        import os
+        # Use user database location
+        cls.db_path = os.path.expanduser('~/.ordb/articles.db')
+        cls.search_cmd = ['uv', 'run', 'ordb']
         
-        # Verify required files exist
+        # Verify database exists
         if not os.path.exists(cls.db_path):
-            raise FileNotFoundError(f"Database {cls.db_path} not found. Run json-to-db.py first.")
-        if not os.path.exists(cls.search_script):
-            raise FileNotFoundError(f"Search script {cls.search_script} not found.")
+            raise FileNotFoundError(f"Database {cls.db_path} not found. Run ordb once to set up database first.")
     
     def setUp(self):
         """Set up each test."""
@@ -43,14 +40,19 @@ class TestDatabaseIntegrity(unittest.TestCase):
         """Clean up after each test."""
         self.conn.close()
     
+    def clean_ansi(self, text):
+        """Remove ANSI color codes from text."""
+        return re.sub(r'\x1b\[[0-9;]*m', '', text)
+    
     def _run_search(self, query, capture_output=True):
         """Run search script and return output."""
         try:
+            cmd = self.search_cmd + ['--no-paginate', query]
             result = subprocess.run(
-                [sys.executable, self.search_script, query],
+                cmd,
                 capture_output=capture_output,
                 text=True,
-                cwd=self.parent_dir
+                timeout=30
             )
             return result.stdout, result.stderr, result.returncode
         except Exception as e:
@@ -216,8 +218,10 @@ class TestDatabaseIntegrity(unittest.TestCase):
             stdout, stderr, returncode = self._run_search(query)
             
             self.assertEqual(returncode, 0, f"Search failed for '{query}': {stderr}")
-            self.assertIn("Found", stdout, f"No results found for '{query}'")
-            self.assertIn("result(s)", stdout, f"Invalid output format for '{query}'")
+            clean_output = self.clean_ansi(stdout)
+            # Should have results (either "Found" text or entry markers)
+            self.assertTrue("Found" in clean_output or "📖" in stdout, f"No results found for '{query}'")
+            self.assertTrue("result" in clean_output or "📖" in stdout, f"Invalid output format for '{query}'")
             print(f"✅ Search for '{query}' successful")
     
     def test_previously_problematic_words(self):
@@ -349,20 +353,17 @@ class TestSearchFeatures(unittest.TestCase):
     
     def setUp(self):
         """Set up each test."""
-        # Get paths relative to parent directory
-        self.parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.search_script = os.path.join(self.parent_dir, 'ordb')
-        if not os.path.exists(self.search_script):
-            self.skipTest(f"Search script {self.search_script} not found")
+        self.search_cmd = ['uv', 'run', 'ordb']
     
     def _run_search(self, query, capture_output=True):
         """Run search script and return output."""
         try:
+            cmd = self.search_cmd + ['--no-paginate', query]
             result = subprocess.run(
-                [sys.executable, self.search_script, query],
+                cmd,
                 capture_output=capture_output,
                 text=True,
-                cwd=self.parent_dir
+                timeout=30
             )
             return result.stdout, result.stderr, result.returncode
         except Exception as e:

@@ -74,18 +74,29 @@ class Colors:
     
     def load_config(self):
         """Load color configuration from config file."""
-        # Try different config locations in order of preference
-        config_paths = [
+        # Primary location (new standard)
+        primary_config = Path.home() / '.ordb' / 'config'
+        
+        # Legacy locations in order of preference
+        legacy_config_paths = [
             Path.home() / '.config' / 'ordb' / 'config',
             Path.home() / '.config-ordb',
             Path('.config-bm'),  # Legacy support
         ]
         
         config_path = None
-        for path in config_paths:
-            if path.exists():
-                config_path = path
-                break
+        
+        # Check primary location first
+        if primary_config.exists():
+            config_path = primary_config
+        else:
+            # Check legacy locations
+            for path in legacy_config_paths:
+                if path.exists():
+                    config_path = path
+                    # Migrate to new location
+                    self._migrate_config(path, primary_config)
+                    break
         
         if not config_path:
             return
@@ -128,6 +139,23 @@ class Colors:
         except Exception as e:
             # Silently ignore config errors and use defaults
             pass
+    
+    def _migrate_config(self, old_path, new_path):
+        """Migrate config from legacy location to new location."""
+        try:
+            # Create new directory if needed
+            new_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Copy config file
+            import shutil
+            shutil.copy2(old_path, new_path)
+            
+            # Update config_path to use new location
+            config_path = new_path
+            
+        except Exception:
+            # If migration fails, continue using old location
+            pass
 
 class SearchConfig:
     """Manage search configuration settings."""
@@ -148,18 +176,30 @@ class SearchConfig:
     def load_config(self):
         """Load search settings from config file."""
         try:
-            # Try different config locations in order of preference
-            config_paths = [
+            # Primary location (new standard)
+            primary_config = Path.home() / '.ordb' / 'config'
+            
+            # Legacy locations in order of preference
+            legacy_config_paths = [
                 Path.home() / '.config' / 'ordb' / 'config',
                 Path.home() / '.config-ordb',
                 Path('.config-bm'),  # Legacy support
             ]
             
             config_path = None
-            for path in config_paths:
-                if path.exists():
-                    config_path = path
-                    break
+            
+            # Check primary location first
+            if primary_config.exists():
+                config_path = primary_config
+            else:
+                # Check legacy locations
+                for path in legacy_config_paths:
+                    if path.exists():
+                        config_path = path
+                        # Migrate to new location
+                        self._migrate_config(path, primary_config)
+                        config_path = primary_config  # Use new location
+                        break
             
             if not config_path:
                 return
@@ -209,6 +249,20 @@ class SearchConfig:
                     self.clear_screen = config['search'].getboolean('clear_screen', True)
         except:
             # If anything goes wrong, just use defaults
+            pass
+    
+    def _migrate_config(self, old_path, new_path):
+        """Migrate config from legacy location to new location."""
+        try:
+            # Create new directory if needed
+            new_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Copy config file
+            import shutil
+            shutil.copy2(old_path, new_path)
+            
+        except Exception:
+            # If migration fails, continue using old location
             pass
 
 def apply_character_replacement(query):
