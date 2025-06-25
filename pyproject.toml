@@ -41,7 +41,7 @@ Issues = "https://github.com/kmlawson/ordb/issues"
 Changelog = "https://github.com/kmlawson/ordb/blob/main/CHANGELOG.md"
 
 [project.scripts]
-ordb = "src.ordb.cli:main"
+ordb = "ordb.cli:main"
 
 [project.optional-dependencies]
 dev = [
