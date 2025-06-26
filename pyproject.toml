@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ordb"
-version = "0.3.0"
-description = "A fast, feature-rich command-line tool for searching the Norwegian Bokmål dictionary provided by ordbokene.no"
+version = "0.5.0"
+description = "A fast, feature-rich command-line tool for searching the Norwegian bokmål dictionary with interactive search, cross-platform support, and comprehensive Norwegian language features"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
-    {name = "Konrad M. Lawson"}
+    {name = "Konrad M. Lawson", email = "kl@muninn.net"}
 ]
 keywords = ["norwegian", "dictionary", "language", "search", "cli", "norsk", "bokmål"]
 classifiers = [
@@ -60,7 +60,7 @@ test = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-"ordb" = ["*.db"]
+"ordb" = ["*.db", "*.db.gz"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

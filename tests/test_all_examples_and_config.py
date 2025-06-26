@@ -4,13 +4,19 @@ import subprocess
 import tempfile
 import re
 import os
+import sys
+import configparser
 from pathlib import Path
+
+# Add src to path for importing
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+from ordb.config import SearchConfig
 
 class TestTodo17_18_19(unittest.TestCase):
     
     def setUp(self):
         """Set up test environment."""
-        self.search_cmd = ['uv', 'run', 'ordb']
+        self.search_cmd = ['python', '-m', 'src.ordb']
         # Use user database location
         self.db_path = os.path.expanduser('~/.ordb/articles.db')
         self.original_dir = os.getcwd()
@@ -87,9 +93,6 @@ class TestTodo17_18_19(unittest.TestCase):
     def test_todo_18_inflections_config_disabled(self):
         """Test TODO #18: SearchConfig class supports show_inflections setting."""
         # Test that the SearchConfig class properly loads the show_inflections setting
-        from src.ordb.config import SearchConfig
-        import tempfile
-        import configparser
         
         # Create a temporary config file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as f:
@@ -119,9 +122,6 @@ show_etymology = True
     def test_todo_19_etymology_config_disabled(self):
         """Test TODO #19: SearchConfig class supports show_etymology setting."""
         # Test that the SearchConfig class properly loads the show_etymology setting
-        from src.ordb.config import SearchConfig
-        import tempfile
-        import configparser
         
         # Create a temporary config file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as f:
@@ -151,9 +151,6 @@ show_etymology = False
     def test_todo_18_19_both_disabled(self):
         """Test both inflections and etymology can be disabled via config."""
         # Test that the SearchConfig class properly loads both settings
-        from src.ordb.config import SearchConfig
-        import tempfile
-        import configparser
         
         # Create a temporary config file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as f:
@@ -183,7 +180,6 @@ show_etymology = False
     def test_todo_18_19_config_defaults_to_true(self):
         """Test that missing config options default to True."""
         # Test that SearchConfig defaults work properly
-        from src.ordb.config import SearchConfig
         
         # Create a SearchConfig instance without any config file
         # This should use default values

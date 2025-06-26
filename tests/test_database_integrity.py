@@ -25,7 +25,7 @@ class TestDatabaseIntegrity(unittest.TestCase):
         import os
         # Use user database location
         cls.db_path = os.path.expanduser('~/.ordb/articles.db')
-        cls.search_cmd = ['uv', 'run', 'ordb']
+        cls.search_cmd = ['python', '-m', 'src.ordb']
         
         # Verify database exists
         if not os.path.exists(cls.db_path):
@@ -353,7 +353,7 @@ class TestSearchFeatures(unittest.TestCase):
     
     def setUp(self):
         """Set up each test."""
-        self.search_cmd = ['uv', 'run', 'ordb']
+        self.search_cmd = ['python', '-m', 'src.ordb']
     
     def _run_search(self, query, capture_output=True):
         """Run search script and return output."""

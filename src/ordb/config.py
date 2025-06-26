@@ -1,7 +1,66 @@
 """Configuration management for ordb."""
 
 import configparser
+import os
 from pathlib import Path
+
+def get_config_dir():
+    """Get the platform-appropriate config directory."""
+    if os.name == 'nt':  # Windows
+        # Use APPDATA environment variable, fallback to USERPROFILE
+        config_base = os.environ.get('APPDATA')
+        if not config_base:
+            config_base = os.environ.get('USERPROFILE')
+        if not config_base:
+            config_base = Path.home()
+        else:
+            config_base = Path(config_base)
+        return config_base / 'ordb'
+    else:  # Unix-like (Linux, macOS, etc.)
+        return Path.home() / '.ordb'
+
+
+def get_data_dir():
+    """Get the platform-appropriate data directory."""
+    if os.name == 'nt':  # Windows
+        # Use LOCALAPPDATA for data files
+        data_base = os.environ.get('LOCALAPPDATA')
+        if not data_base:
+            data_base = os.environ.get('APPDATA')
+        if not data_base:
+            data_base = os.environ.get('USERPROFILE')
+        if not data_base:
+            data_base = Path.home()
+        else:
+            data_base = Path(data_base)
+        return data_base / 'ordb'
+    else:  # Unix-like (Linux, macOS, etc.)
+        return Path.home() / '.ordb'
+
+
+def get_config_path():
+    """Get the path to the configuration file, checking multiple locations."""
+    # Primary location (platform-appropriate)
+    primary_config = get_config_dir() / 'config'
+    
+    # Legacy locations in order of preference
+    legacy_config_paths = [
+        Path.home() / '.config' / 'ordb' / 'config',
+        Path.home() / '.config-ordb',
+        Path('.config-bm'),  # Legacy support
+    ]
+    
+    # Check primary location first
+    if primary_config.exists():
+        return primary_config
+    
+    # Check legacy locations
+    for path in legacy_config_paths:
+        if path.exists():
+            return path
+    
+    return None
+
 
 # Default ANSI color codes
 DEFAULT_COLORS = {
@@ -74,8 +133,8 @@ class Colors:
     
     def load_config(self):
         """Load color configuration from config file."""
-        # Primary location (new standard)
-        primary_config = Path.home() / '.ordb' / 'config'
+        # Primary location (platform-appropriate)
+        primary_config = get_config_dir() / 'config'
         
         # Legacy locations in order of preference
         legacy_config_paths = [
@@ -169,6 +228,9 @@ class SearchConfig:
         self.page_size = 20
         self.limit_with_pagination = 500
         self.clear_screen = True
+        self.interactive_results_limit = 15
+        self.fallback_to_fuzzy = True
+        self.interactive_anywhere_search = True
         
         # Load from config
         self.load_config()
@@ -176,8 +238,8 @@ class SearchConfig:
     def load_config(self):
         """Load search settings from config file."""
         try:
-            # Primary location (new standard)
-            primary_config = Path.home() / '.ordb' / 'config'
+            # Primary location (platform-appropriate)
+            primary_config = get_config_dir() / 'config'
             
             # Legacy locations in order of preference
             legacy_config_paths = [
@@ -247,6 +309,27 @@ class SearchConfig:
                 
                 if 'clear_screen' in config['search']:
                     self.clear_screen = config['search'].getboolean('clear_screen', True)
+                
+                # Interactive results limit (with backward compatibility)
+                if 'interactive_results_limit' in config['search']:
+                    try:
+                        value = config['search']['interactive_results_limit'].split('#')[0].strip()
+                        self.interactive_results_limit = int(value)
+                    except ValueError:
+                        pass
+                elif 'fuzzy_results_limit' in config['search']:
+                    # Backward compatibility
+                    try:
+                        value = config['search']['fuzzy_results_limit'].split('#')[0].strip()
+                        self.interactive_results_limit = int(value)
+                    except ValueError:
+                        pass
+                
+                if 'fallback_to_fuzzy' in config['search']:
+                    self.fallback_to_fuzzy = config['search'].getboolean('fallback_to_fuzzy', True)
+                
+                if 'interactive_anywhere_search' in config['search']:
+                    self.interactive_anywhere_search = config['search'].getboolean('interactive_anywhere_search', True)
         except:
             # If anything goes wrong, just use defaults
             pass

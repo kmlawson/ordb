@@ -2,59 +2,7 @@
 
 import re
 import sys
-
-
-def get_terminal_size():
-    """Get terminal size, with fallback to default values."""
-    try:
-        import shutil
-        columns, rows = shutil.get_terminal_size()
-        return rows, columns
-    except:
-        return 24, 80  # Default fallback
-
-
-def get_single_keypress():
-    """Get a single keypress from the user without requiring Enter."""
-    try:
-        import sys
-        import tty
-        import termios
-        
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            char = sys.stdin.read(1)
-            return char
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    except:
-        # Fallback for systems without termios (Windows)
-        try:
-            import msvcrt
-            return msvcrt.getch().decode('utf-8')
-        except:
-            # Final fallback - use input()
-            return input()
-
-
-def find_entry_start(lines, from_line):
-    """Find the start of the dictionary entry that contains the given line."""
-    # Look backwards from the current line to find an entry header (📖)
-    for i in range(from_line, -1, -1):
-        # Remove ANSI codes to check for entry header
-        clean_line = re.sub(r'\x1b\[[0-9;]*m', '', lines[i])
-        if clean_line.strip().startswith('📖'):
-            return i
-    
-    # If no entry header found going backwards, look forwards
-    for i in range(from_line + 1, len(lines)):
-        clean_line = re.sub(r'\x1b\[[0-9;]*m', '', lines[i])
-        if clean_line.strip().startswith('📖'):
-            return i
-    
-    return 0  # If no entry header found anywhere, return start of document
+from .utils import get_terminal_size, get_single_keypress, find_entry_start
 
 
 def paginate_output(text, page_size=None, force_pagination=False, disable_pagination=False):

@@ -2,12 +2,51 @@
 
 import re
 import json
+import os
+from pathlib import Path
 from collections import Counter
 from .config import Colors, search_config
 from .core import get_definitions_and_examples, get_related_expressions
 
 # Test words for the -t flag
 TEST_WORDS = ['stein', 'gå', 'hus']
+
+
+def _load_irregular_verbs():
+    """Load irregular verbs from data file and convert to regex patterns."""
+    try:
+        # Find the db directory relative to this file
+        current_dir = Path(__file__).parent
+        project_root = current_dir.parent.parent
+        irregular_verbs_file = project_root / 'db' / 'irregular_verbs.json'
+        
+        if not irregular_verbs_file.exists():
+            # Fallback to basic irregular verbs if file not found
+            return {
+                'gå': r'\b(gå|går|gikk|gått)\b',
+                'være': r'\b(være|er|var|vært)\b', 
+                'ha': r'\b(ha|har|hadde|hatt)\b',
+            }
+        
+        with open(irregular_verbs_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Convert the verb forms to regex patterns
+        irregular_verbs = {}
+        for infinitive, forms in data['irregular_verbs'].items():
+            # Create regex pattern from all forms
+            escaped_forms = [re.escape(form) for form in forms]
+            pattern = r'\b(' + '|'.join(escaped_forms) + r')\b'
+            irregular_verbs[infinitive] = pattern
+        
+        return irregular_verbs
+    except Exception:
+        # Fallback to basic irregular verbs if loading fails
+        return {
+            'gå': r'\b(gå|går|gikk|gått)\b',
+            'være': r'\b(være|er|var|vært)\b', 
+            'ha': r'\b(ha|har|hadde|hatt)\b',
+        }
 
 
 def format_word_class(word_class):
@@ -126,15 +165,12 @@ def highlight_search_term(text, search_term, base_color=Colors.EXAMPLE):
     # This is a simplified approach - a full solution would require a Norwegian stemmer
     inflection_patterns = []
     
-    if search_term.lower() == 'gå':
-        # Special case for "gå" which has irregular inflections
-        inflection_patterns = [r'\b(gå|går|gås|gikk|gått|gåtte|gående)\b']
-    elif search_term.lower() == 'være':
-        # Special case for "være" 
-        inflection_patterns = [r'\b(være|er|var|vært)\b']
-    elif search_term.lower() == 'ha':
-        # Special case for "ha"
-        inflection_patterns = [r'\b(ha|har|hadde|hatt)\b']
+    # Load Norwegian irregular verbs from data file
+    irregular_verbs = _load_irregular_verbs()
+    
+    search_lower = search_term.lower()
+    if search_lower in irregular_verbs:
+        inflection_patterns = [irregular_verbs[search_lower]]
     else:
         # For regular words, try words that start with the search term
         inflection_patterns = [rf'\b({re.escape(search_term)}\w*)\b']
@@ -165,8 +201,8 @@ def highlight_search_term(text, search_term, base_color=Colors.EXAMPLE):
     return f"{base_color}{highlighted}{Colors.END}"
 
 
-def format_inflection_table(inflection_table_json, word_class=None):
-    """Format inflection table as a proper table, deduplicating entries."""
+def format_inflection_table(inflection_table_json, word_class=None, lemma=None):
+    """Format inflection table as a proper table, deduplicating entries and filtering redundant forms."""
     if not inflection_table_json:
         return ""
     
@@ -279,8 +315,15 @@ def format_inflection_table(inflection_table_json, word_class=None):
             
             for category in sorted_categories:
                 forms = sorted(list(all_grouped[category]))
-                forms_str = ', '.join(forms)
-                inflection_parts.append(f"{Colors.INFLECTION_LABEL}{category}:{Colors.END} {forms_str}")
+                
+                # Filter out forms that are identical to the lemma (avoid redundancy)
+                if lemma:
+                    forms = [form for form in forms if form.lower() != lemma.lower()]
+                
+                # Only add category if it has remaining forms
+                if forms:
+                    forms_str = ', '.join(forms)
+                    inflection_parts.append(f"{Colors.INFLECTION_LABEL}{category}:{Colors.END} {forms_str}")
             
             # Join all parts with spaces instead of newlines to make it compact
             if inflection_parts:
@@ -294,7 +337,7 @@ def format_inflection_table(inflection_table_json, word_class=None):
         return ""
 
 
-def format_inflection_table_multiline(inflection_table_json, word_class=None):
+def format_inflection_table_multiline(inflection_table_json, word_class=None, lemma=None):
     """Format inflection table with each category on a separate line (for --only-inflections)."""
     if not inflection_table_json:
         return ""
@@ -406,8 +449,15 @@ def format_inflection_table_multiline(inflection_table_json, word_class=None):
             
             for category in sorted_categories:
                 forms = sorted(list(all_grouped[category]))
-                forms_str = ', '.join(forms)
-                inflection_lines.append(f"  {Colors.INFLECTION_LABEL}{category}:{Colors.END} {forms_str}")
+                
+                # Filter out forms that are identical to the lemma (avoid redundancy)
+                if lemma:
+                    forms = [form for form in forms if form.lower() != lemma.lower()]
+                
+                # Only add category if it has remaining forms
+                if forms:
+                    forms_str = ', '.join(forms)
+                    inflection_lines.append(f"  {Colors.INFLECTION_LABEL}{category}:{Colors.END} {forms_str}")
             
             # Join all parts with newlines for multiline mode
             if inflection_lines:
@@ -505,7 +555,7 @@ def format_result(conn, result, show_definitions=True, show_examples=True, max_e
     if only_inflections:
         if inflection_table:
             # Format inflections on separate lines for this mode
-            inflection_output = format_inflection_table_multiline(inflection_table, word_class)
+            inflection_output = format_inflection_table_multiline(inflection_table, word_class, lemma)
             if inflection_output:
                 output.append(inflection_output)
             else:
@@ -596,7 +646,7 @@ def format_result(conn, result, show_definitions=True, show_examples=True, max_e
     
     # Inflection table (after etymology)
     if search_config.show_inflections:
-        table_output = format_inflection_table(inflection_table, word_class)
+        table_output = format_inflection_table(inflection_table, word_class, lemma)
         if table_output:
             output.append(table_output)
             output.append("")

@@ -1,11 +1,10 @@
 # Include the README and other documentation files
 include README.md
-include LICENSE.md
+include LICENSE
 include CHANGELOG.md
 
 # Include configuration files
 include pyproject.toml
-include .config-bm
 
 # Include the compressed database file for distribution
 include db/articles.db.gz

@@ -5,14 +5,179 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2025-06-26
+
+### Added
+- **Automatic Configuration Management**: Enhanced configuration file handling for seamless user experience
+  - Configuration files are now automatically created on every ordb run if missing
+  - `-C/--cat-config` flag automatically creates default config file when none exists
+  - Ensures ordb never runs without a proper configuration file in place
+  - Cross-platform compatibility for configuration directory creation
+
+### Fixed  
+- **Bundled Database Integration**: Complete resolution of fresh installation database setup
+  - Removed all debug output from bundled database extraction process
+  - Cleaner, more welcoming first-run experience with friendly messaging
+  - Enhanced user interface: "Welcome to ordb. No installed dictionary found. May I now install the included dictionary database to [directory]?"
+  - Eliminated technical debug messages that could confuse new users
+- **Build System Improvements**: Fixed packaging configuration issues
+  - Corrected LICENSE file reference in `setup.cfg` (was incorrectly pointing to LICENSE.md)
+  - Resolved setuptools warnings during package building
+  - Ensures clean, warning-free package distribution
+- **Test Suite Maintenance**: Complete test coverage with 100% pass rate
+  - Fixed config wizard completeness tests to work with new integrated wizard module
+  - Updated test references from external `config-wizard.py` to integrated `src/ordb/wizard.py`
+  - Enhanced wizard test coverage to include all SearchConfig settings
+  - All 112 tests now pass successfully
+
+### Changed
+- **Configuration Workflow**: Improved user experience for configuration management
+  - Configuration creation is now silent during normal operations (non `-C` usage)
+  - `-C` flag provides informative feedback when creating new configuration files
+  - Streamlined configuration file generation with comprehensive default values and comments
+
+## [0.4.4] - 2025-06-26
+
+### Added
+- **Configuration Display**: New `-C/--cat-config` flag to display raw configuration file contents
+  - Quickly view current configuration settings without opening the file
+  - Shows config file path detection across multiple legacy locations
+  - Useful for debugging configuration issues
+- **Words-Only Output**: New `-w/--words-only` and `-W` flags for extracting just matching words
+  - `-w/--words-only`: Returns matching words as comma-separated list (no limit)
+  - `-W`: Returns matching words one per line (no limit, no other text)
+  - Works with all search types: exact, prefix (`word@`), and anywhere (`@word`)
+  - Bypasses interactive modes and returns all matches
+  - Ideal for piping results to other scripts or processing tools
+  - Example: `ordb -w hus@` returns all 145 words starting with "hus" as CSV
+- **Random Entry Selection**: New `-r[N]` and `-R[N]` flags for random dictionary exploration
+  - `-r[N]`: Get N random dictionary entries with full definitions (default: 1)
+  - `-R[N]`: Get N random words only, one per line (default: 1)
+  - Respects all display flags (`--only-examples`, `--only-inflections`, etc.)
+  - Excludes expressions by default for cleaner results
+  - Example: `ordb -r3` shows 3 random complete dictionary entries
+  - Example: `ordb -R5 | xargs -I {} ordb -w {}@` gets 5 random words and finds all related words
+
+### Fixed
+- **Bundled Database Extraction**: Fixed fresh installation database setup for uv tool installs
+  - Database file now properly bundled in wheel packages (`articles.db.gz` included in package directory)
+  - Updated `extract_bundled_database()` to find database in installed package location
+  - Fixed "Bundled database not available" error during fresh installations
+  - Enhanced database detection with multiple fallback methods for different installation types
+  - Enables offline usage immediately after `uv tool install ordb` without requiring internet download
+- **Config Wizard Integration**: Moved configuration wizard from external script to integrated package module
+  - Fixed config wizard accessibility after `uv tool install` by integrating into `src/ordb/wizard.py`
+  - Removed external `config-wizard.py` dependency that wasn't included in package distribution
+  - Updated CLI to use internal wizard module for `ordb -c` command
+- **Display Improvements**: Enhanced configuration wizard interface
+  - Fixed box alignment for "Norwegian Bokmål" text in config wizard
+  - Implemented compact horizontal color display (reduced from 16 lines to 3 lines)
+  - Colors now shown in 2-row grid format for better space efficiency
+- **CLI Enhancements**: Improved command-line flag handling
+  - Added `-l` as short form of `--limit` flag for consistency
+  - Updated `-l/--limit` to override interactive lists and show results directly (bypasses lettered selection menus)
+  - Added `-P/--no-paginate` flag to override interactive lists (not just pagination)
+  - Updated help text with current examples and flag descriptions
+- **Inflection Filtering**: Hide redundant inflection forms
+  - Implemented filtering to hide inflections identical to the lemma word
+  - Reduces visual clutter in inflection tables by removing redundant entries
+- **Test Suite Fixes**: Comprehensive test fixes for development workflow
+  - Fixed module import paths in all test files from `ordb` to `src.ordb` for source testing
+  - Fixed `--all-examples` flag handling when `args.limit` is None
+  - Updated character replacement tests to handle both interactive and direct result modes
+  - All tests now pass with 100% success rate
+
+### Changed
+- **Entry Points**: Simplified package entry points
+  - Removed redundant `ordb-config` entry point (functionality available via `ordb -c`)
+  - Single `ordb` command now handles all functionality including configuration
+- **Configuration Wizard**: Improved user experience
+  - Compact color selection display for better terminal efficiency
+  - Enhanced visual layout with proper box alignment
+- **Configuration File**: Enhanced configuration file generation
+  - Config files now include all available settings with default values
+  - Comprehensive comments explain each setting's purpose and available options
+  - Makes it easier to browse and customize settings by hand-editing the file
+- **Output Formatting**: Minor improvements
+  - Reduced double blank lines to single blank line before "Found x results" message
+- **Search Result Sorting**: Improved alphabetical ordering
+  - Search results now sort alphabetically within groups of the same length
+  - Applies to all search types: prefix, anywhere term, fulltext, and fuzzy searches
+  - Example: words of length 8 like "husalter", "husholde", "huslærer" now appear in alphabetical order
+
+## [0.4.0] - 2025-06-26
+
+### Added
+- **Comprehensive Irregular Verbs**: Added database of 74 Norwegian irregular/strong verbs for improved search highlighting
+  - Verbs loaded from `db/irregular_verbs.json` data file
+  - Includes conjugated forms for accurate highlighting of irregular verb inflections
+  - Sources: yourdictionary.one and dinordbok.no irregular/strong verb lists
+- **Interactive @ Searches**: Added `interactive_anywhere_search` config option (default: True)
+  - Prefix search (`word@`) now shows lettered selection menu when enabled
+  - Anywhere term search (`@word`) now shows lettered selection menu when enabled
+  - Uses same immediate keypress interface as fuzzy search
+  - Highlighted matching portions (prefix in green, rest dimmed)
+  - **"More Results" Option**: All interactive searches (fuzzy, prefix, anywhere term) now show "...more results" option when hits exceed configured limit
+    - Allows users to view additional matches beyond the initial display limit
+    - Shows count of remaining matches for better context
+    - Uses "0" key or spacebar for "more results" to avoid conflicts with multi-letter selections (aa, ab, etc.)
+    - **Proper Pagination**: Each page shows consistent number of results (configured limit) instead of growing cumulatively
+    - **Silent Cancellation**: Pressing Enter to cancel returns to shell without "No results found" message
+    - **Graceful Invalid Selection**: Shows "Invalid selection" message but exits silently without "No results found"
+- **Configuration Improvements**:
+  - Renamed `fuzzy_results_limit` to `interactive_results_limit` for clarity (applies to all interactive lists)
+  - `limit_with_pagination` now accepts 0 as "no limit" option for unlimited results with pagination
+  - Backward compatibility maintained for old config setting names
+- **Windows Compatibility**: Full Windows support with platform-appropriate paths
+  - Config files stored in `%APPDATA%\ordb\` on Windows vs `~/.ordb/` on Unix
+  - Database stored in `%LOCALAPPDATA%\ordb\` on Windows for better data management
+  - Cross-platform keypress detection (termios/msvcrt)
+  - User feedback shows exact save locations for config and database files
+  - Comprehensive test suite for cross-platform compatibility
+
+### Changed
+- **Interactive Fuzzy Search**: Improved user experience with immediate letter key selection
+  - Now uses single keypress detection instead of waiting for Enter
+  - Letters trigger immediate entry lookup for faster interaction
+  - **Differential Highlighting**: Matching characters shown in bright green, non-matching in dimmed cyan
+  - Visual similarity assessment at a glance for fuzzy search results
+- **Test Organization**: Reorganized test files by functionality instead of generic "recent features"
+  - `test_recent_features.py` → split into focused test files:
+  - `test_etymology_flags.py` - Tests for etymology display flags (-e, --only-etymology)
+  - `test_inflection_flags.py` - Tests for inflection display flags (-i, --only-inflections)  
+  - `test_word_filters.py` - Tests for word type filters (--adj, --verb, --noun, --adv)
+  - `test_pagination.py` - Tests for pagination functionality and navigation
+- **Code Organization**: Moved utility functions to dedicated `utils.py` module
+  - Moved `get_single_keypress()`, `get_terminal_size()`, `find_entry_start()` from pagination.py
+  - Added `clean_ansi_codes()` utility function
+  - Updated all test files to use shared utility functions
 
 ## [0.3.0] - 2025-06-25
 
 ### Added
+- **Interactive Fuzzy Search**: Enhanced `-f` flag with lettered selection interface
+  - Shows ranked list of similar matches (a, b, c, etc.) instead of displaying all results
+  - Users select a letter to view specific entry, or press Enter to cancel
+  - Configurable result limit via `fuzzy_results_limit` setting (default: 15)
+  - After 'z', continues with 'aa', 'ab', etc. for extensibility
+- **Smart Fallback System**: Configurable fallback behavior when no exact matches found
+  - `fallback_to_fuzzy=True`: Shows interactive fuzzy search (new default)
+  - `fallback_to_fuzzy=False`: Uses prefix search (original behavior)
 - **Version Flag**: Added `-v` and `--version` command-line flags to display ordb version
+- **Configuration Enhancements**: 
+  - Added `fuzzy_results_limit` and `fallback_to_fuzzy` settings
+  - Updated config wizard to use `~/.ordb/config` as primary location
+  - Config wizard now covers all SearchConfig settings dynamically
 
 ### Fixed
+- **Code Organization**: Improved highlight_search_term function with better irregular verb handling
+- **Configuration Management**: Updated config wizard to save to proper location instead of legacy .config-bm
+- **Test Coverage**: Added comprehensive test for config wizard completeness to prevent missing settings
+
+### Changed
+- **Fuzzy Search Behavior**: `-f` flag now shows interactive selection instead of listing all matches
+- **Help Documentation**: Updated CLI help and README to reflect new fuzzy search behavior
+- **Default Behavior**: Exact search fallback now uses fuzzy search by default (configurable)
 - **Test Suite Improvements**: Comprehensive cleanup and modernization
   - Removed obsolete tests for missing modules and deprecated functionality
   - Fixed database paths to use user directory (~/.ordb/articles.db)

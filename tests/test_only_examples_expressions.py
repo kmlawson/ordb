@@ -8,7 +8,7 @@ class TestTodo26(unittest.TestCase):
     
     def setUp(self):
         """Set up test environment."""
-        self.search_cmd = ['uv', 'run', 'ordb']
+        self.search_cmd = ['python', '-m', 'src.ordb']
         # Use user database location
         self.db_path = os.path.expanduser('~/.ordb/articles.db')
     

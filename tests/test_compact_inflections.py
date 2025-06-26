@@ -12,7 +12,7 @@ def test_compact_inflections():
     """Test that inflections are displayed on a single compact line."""
     
     # Test with a noun (hus)
-    result = subprocess.run(['uv', 'run', 'ordb', 'hus', '--limit', '1', '--no-paginate'], 
+    result = subprocess.run(['python', '-m', 'src.ordb', 'hus', '--limit', '1', '--no-paginate'], 
                           capture_output=True, text=True)
     output = result.stdout
     
@@ -30,7 +30,7 @@ def test_compact_inflections():
     assert 'Singular:' in inflection_line and 'Plural:' in inflection_line, "Noun inflections not compact"
     
     # Test with a verb (gå)
-    result = subprocess.run(['uv', 'run', 'ordb', 'gå', '--limit', '1', '--no-paginate'], 
+    result = subprocess.run(['python', '-m', 'src.ordb', 'gå', '--limit', '1', '--no-paginate'], 
                           capture_output=True, text=True)
     output = result.stdout
     
@@ -50,7 +50,7 @@ def test_compact_inflections():
 def test_no_multiline_inflections():
     """Test that inflections no longer span multiple lines."""
     
-    result = subprocess.run(['uv', 'run', 'ordb', 'hus', '--limit', '1', '--no-paginate'], 
+    result = subprocess.run(['python', '-m', 'src.ordb', 'hus', '--limit', '1', '--no-paginate'], 
                           capture_output=True, text=True)
     output = result.stdout
     

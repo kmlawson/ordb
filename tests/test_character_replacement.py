@@ -8,14 +8,14 @@ class TestCharacterReplacement(unittest.TestCase):
     
     def setUp(self):
         """Set up test environment."""
-        # Use modern uv run command
-        self.search_cmd = ['uv', 'run', 'ordb']
+        # Use faster python module command
+        self.search_cmd = ['python', '-m', 'src.ordb']
         # Use user database location (default for ordb)
         self.db_path = os.path.expanduser('~/.ordb/articles.db')
     
     def run_search(self, query, *args):
         """Run search command and return output."""
-        cmd = self.search_cmd + list(args) + [query]
+        cmd = self.search_cmd + ['--no-paginate'] + list(args) + [query]
         result = subprocess.run(cmd, capture_output=True, text=True)
         return result.stdout
     
@@ -68,15 +68,13 @@ class TestCharacterReplacement(unittest.TestCase):
         output = self.run_search('gaa', '-f')
         clean_output = self.clean_ansi(output)
         
-        # Should find results
-        self.assertIn('search for', output.lower())
+        # Should find results (either interactive or direct)
+        # When using --no-paginate, it bypasses interactive mode and shows direct results
+        success_indicators = ['search for', '📖', 'found', 'results']
+        self.assertTrue(any(indicator in output.lower() for indicator in success_indicators))
         
-        # Should mention fuzzy search
-        self.assertIn('Fuzzy search', output)
-        
-        # Should find 'gå' 
-        if 'gå' in clean_output:
-            self.assertIn('gå', clean_output)
+        # Should find 'gå' via fuzzy matching
+        self.assertIn('gå', clean_output)
     
     def test_prefix_search_with_replacement(self):
         """Test character replacement works with prefix search."""

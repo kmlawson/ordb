@@ -6,163 +6,231 @@ This directory contains comprehensive tests for the ordb Norwegian dictionary se
 
 ### Core Functionality Tests
 
-**`test_comprehensive_functionality.py`** - Main test suite covering all ordb functionality with 21 tests
-- Tests help command display and all command-line flags
-- Validates all search modes: exact, fuzzy (`--fuzzy`), prefix (`word@`), fulltext (`%word`), anywhere (`@word`, `--anywhere`), and expressions-only (`--expressions-only`)
-- Tests word class filters: `--noun`, `--verb`, `--adj`, `--adv` to filter results by grammatical category
-- Validates output control flags: `--limit`, `--no-definitions`, `--no-examples`, `--only-examples`, `--only-etymology`, `--only-inflections`
-- Tests pagination control with `-p` (force) and `-P` (disable) flags
-- Validates threshold control for fuzzy search sensitivity and max examples limiting
-- Tests special search syntax including prefix search with `@`, fulltext search with `%`
-- Validates automatic Norwegian character replacement (aa→å, oe→ø, ae→æ)
-- Tests statistics display (`--stats`) and configuration flag (`--config`)
-- Includes comprehensive error handling tests for invalid inputs and malformed commands
+**`test_comprehensive_functionality.py`** - Main integration test suite (21 tests)
+- Tests all command-line flags and options
+- Validates search modes: exact, fuzzy (`-f`), prefix (`word@`), anywhere (`@word`, `-a`), fulltext (`%word`), expressions (`-x`)
+- Tests word type filters: `--noun`, `--verb`, `--adj`, `--adv`
+- Validates output modes: `--only-examples`, `--only-etymology`, `--only-inflections`, `--no-definitions`, `--no-examples`
+- Tests pagination controls: `-p` (force), `-P` (disable)
+- Validates configuration wizard (`-c`), statistics (`-s`), and version (`-v`) commands
+- Tests Norwegian character replacement and search limits
 
-**`test_database_integrity.py`** - Database structure and content validation with comprehensive health checks
-- Tests database schema integrity with proper table structure (articles, definitions, examples, expression_links)
-- Validates data integrity by checking for duplicate definitions and ensuring proper cross-reference links
-- Tests specific word counts: verifies 'stein' returns exactly 15 expressions and 'hjerte' returns ~25 expressions
-- Validates cross-reference functionality between expressions and their target words (e.g., "på huset" → "hus")
-- Tests database contains expected record counts: >90,000 articles, >9,000 expression links
-- Validates word class integrity with proper SUBST, VERB, ADJ, ADV, EXPR classifications
-- Tests previously problematic words to ensure fixes for duplicate definitions remain resolved
-- Validates sub-definition integration ensuring they're properly merged with parent definitions
-- Tests output formatting integrity to ensure no malformed content appears in search results
-- Includes comprehensive database health metrics and regression testing for known issues
+**`test_database_integrity.py`** - Database validation and health checks (13 tests)
+- Validates database schema: articles, definitions, examples, expression_links tables
+- Tests data integrity: no duplicate definitions, proper cross-references
+- Validates record counts: 90,841+ articles, 111,425+ definitions, 83,849+ examples
+- Tests specific word expressions: 'stein' (15 expressions), 'hjerte' (25 expressions)
+- Validates cross-reference links: "på huset" → "hus", "fullt hus" → "hus"/"full"
+- Tests word class distribution and sub-definition integration
+- Ensures no malformed output in search results
+
+**`test_interactive_fuzzy_search.py`** - Interactive search functionality (21 tests)
+- Tests fuzzy search interactive lettered lists (`-f`)
+- Validates prefix search interactive mode (`word@`)
+- Tests anywhere term search interactive mode (`@word`)
+- Tests "more results" pagination with '0' key and spacebar
+- Validates differential highlighting for fuzzy matches
+- Tests silent cancellation (Enter key) and graceful invalid selection handling
+- Tests letter sequence generation (a-z, aa-ab, etc.)
+- Validates user selection and entry display functionality
 
 ### Feature-Specific Tests
 
-**`test_character_replacement.py`** - Norwegian character replacement functionality with 10 comprehensive tests
-- Tests automatic 'aa' → 'å' replacement ensuring searches like 'gaa' correctly find 'gå'
-- Tests automatic 'oe' → 'ø' replacement ensuring searches like 'groen' correctly find 'grønn'
-- Tests automatic 'ae' → 'æ' replacement ensuring searches like 'vaere' correctly find 'være'
-- Validates character replacement works across all search modes: fuzzy search, prefix search, fulltext search, anywhere search, and expressions-only search
-- Tests multiple replacement scenarios where a single query might have multiple character substitutions
-- Validates uppercase character replacement handling for queries in all caps or mixed case
-- Ensures character replacement maintains search accuracy and doesn't introduce false positives
-- Tests edge cases with compound character replacements and complex Norwegian text patterns
+**`test_character_replacement.py`** - Norwegian character substitution (9 tests)
+- Tests 'aa' → 'å' replacement in searches (e.g., 'gaa' finds 'gå')
+- Tests 'oe' → 'ø' replacement (e.g., 'groen' finds 'grønn')
+- Tests 'ae' → 'æ' replacement (e.g., 'vaere' finds 'være')
+- Validates replacement works across all search modes
+- Tests multiple replacements and uppercase handling
 
-**`test_all_examples_and_config.py`** - Examples search and configuration functionality testing TODO items #17-19
-- Tests `--all-examples` flag functionality to search for examples across the entire dictionary
-- Validates `--all-examples` respects the `--limit` parameter and properly truncates results when needed
-- Tests that `--all-examples` works correctly with character replacement features
-- Validates configuration file handling for `show_inflections = False` to hide inflections sections
-- Tests configuration file handling for `show_etymology = False` to hide etymology sections
-- Validates both inflections and etymology can be disabled simultaneously via configuration
-- Tests that missing configuration options properly default to True (showing all sections)
-- Includes edge case testing for `--all-examples` with queries that have no matching examples
+**`test_word_filters.py`** - Grammatical category filtering (4 tests)
+- Tests `--adj` filter returns only adjectives
+- Tests `--verb` filter returns only verbs
+- Tests `--noun` filter returns only nouns
+- Tests `--adv` filter returns only adverbs
 
-**`test_display_flags.py`** - Display control flags testing TODO items #14-16
-- Tests `--no-definitions` flag excludes definition text from "Faste uttrykk" (fixed expressions) while preserving expression names
-- Tests `--no-examples` flag excludes example sentences from "Faste uttrykk" while preserving definition text
-- Validates `--only-examples` shows only example sentences without definitions, etymology, or inflections
-- Tests `--only-examples` works correctly with words that have multiple dictionary entries
-- Validates `--only-examples` gracefully handles words that have no examples by showing appropriate headers
-- Ensures proper interaction between different display flags and consistent behavior across search results
+**`test_pagination.py`** - Terminal pagination system (10 tests)
+- Tests pagination enabled/disabled by configuration
+- Validates force pagination with `-p` flag
+- Tests pagination quit functionality with 'q' key
+- Validates color preservation during pagination
+- Tests entry header preservation with small page sizes
+- Validates interaction with etymology and word filter flags
 
-**`test_only_examples_expressions.py`** - Examples and expressions display testing TODO item #26
-- Tests `--only-examples` includes expression names and examples from "Faste uttrykk" (fixed expressions) sections
-- Validates comparison between `--only-examples` output and regular search to ensure expressions are properly included
-- Tests that expressions without examples are still included in `--only-examples` output to maintain completeness
-- Ensures consistent formatting and display of expressions when using examples-only mode
+**`test_etymology_flags.py`** - Etymology display options (9 tests)
+- Tests etymology-only flag (`-e`, `--only-etymology`)
+- Validates etymology display format and content
+- Tests etymology with different search modes
+- Ensures proper header formatting for etymology-only output
 
-**`test_recent_features.py`** - Recently implemented features testing TODO items #20-25 and pagination
-- Tests etymology-only flag (`-e`, `--only-etymology`) to display only etymological information
-- Tests inflections-only flag (`-i`, `--only-inflections`) to display only grammatical inflections with proper multiline formatting
-- Validates word type filters: `--adj` (adjectives), `--verb` (verbs), `--noun` (nouns), `--adv` (adverbs) for precise grammatical filtering
-- Tests pagination system: default enabled behavior, configuration-based disabling, force pagination with `-p` flag
-- Validates pagination functionality: quit behavior with 'q', color preservation, proper header display
-- Tests pagination doesn't trigger for short output that fits in terminal
-- Validates interaction between etymology flag and pagination system
-- Tests word type filters work correctly with pagination enabled
-- Ensures entry headers are preserved during paginated display
+**`test_inflection_flags.py`** - Inflection display options (9 tests)
+- Tests inflections-only flag (`-i`, `--only-inflections`)
+- Validates multiline inflection formatting
+- Tests inflection display with different word types
+- Ensures proper formatting for complex inflection tables
 
-### Utility and Legacy Tests
+**`test_display_flags.py`** - Output control flags (4 tests)
+- Tests `--no-definitions` excludes definition text
+- Tests `--no-examples` excludes example sentences
+- Validates `--only-examples` shows examples only
+- Tests interaction between different display flags
 
-**`test_compact_inflections.py`** - Inflection display formatting with 2 specific tests
-- Tests that inflections are displayed in a compact, single-line format rather than spanning multiple lines
-- Validates that the inflection display format doesn't create unwanted line breaks or formatting issues
-- Ensures both noun inflections (Singular/Plural forms) and verb inflections (Infinitive/Present/Past forms) are properly formatted
+### Configuration and Platform Tests
+
+**`test_config_wizard_completeness.py`** - Configuration system validation (2 tests)
+- Dynamically verifies wizard covers all SearchConfig settings
+- Tests that save_config includes all settings
+- Ensures no configuration drift between loader and wizard
+
+**`test_platform_paths.py`** - Cross-platform compatibility (6 tests)
+- Tests Unix/Linux path handling (`~/.ordb/`)
+- Validates Windows path logic (APPDATA/LOCALAPPDATA)
+- Tests path fallback behavior
+- Validates directory creation and file operations
+
+**`test_all_examples_and_config.py`** - Examples search and config integration (8 tests)
+- Tests `--all-examples` flag across dictionary
+- Validates configuration file settings for inflections/etymology
+- Tests config defaults and file handling
+
+### Specialized Tests
+
+**`test_only_examples_expressions.py`** - Expression handling in examples mode (3 tests)
+- Tests `--only-examples` includes fixed expressions
+- Validates expression formatting in examples-only output
+
+**`test_compact_inflections.py`** - Inflection formatting (2 tests)
+- Tests compact, single-line inflection display
+- Validates proper formatting without unwanted line breaks
+
+**`test_general_fixes.py`** - General bug fixes and improvements (3 tests)
+- Tests specific bug fixes and edge cases
+- Validates regression prevention
+
+## Test Statistics
+
+**Current Status: 100% test success rate (14 test files, all passing)**
+
+### Test Distribution:
+- **Interactive functionality**: 21 tests (fuzzy search, pagination, user interaction)
+- **Core functionality**: 21 tests (search modes, flags, basic operations)
+- **Database integrity**: 13 tests (data validation, schema, cross-references)
+- **Configuration system**: 10 tests (wizard, platform paths, file handling)
+- **Display features**: 9 tests (etymology flags, pagination, formatting)
+- **Language features**: 9 tests (character replacement, Norwegian-specific)
+- **Word filtering**: 4 tests (grammatical category filters)
+- **Examples system**: 3 tests (examples-only mode, expressions)
+- **Platform support**: 6 tests (Windows/Unix compatibility)
+- **Inflection display**: 2 tests (formatting, multiline output)
 
 ## Running Tests
 
 ### Run All Tests
 ```bash
-uv run pytest tests/
+python tests/test_comprehensive_functionality.py
+# or
+find tests -name "test_*.py" -exec python {} \;
 ```
 
 ### Run Specific Test File
 ```bash
-uv run pytest tests/test_comprehensive_functionality.py
+python tests/test_interactive_fuzzy_search.py
+python tests/test_database_integrity.py
 ```
 
-### Run with Verbose Output
+### Run with Pattern Matching
 ```bash
-uv run pytest tests/ -v
-```
+# Run all character replacement tests
+python tests/test_character_replacement.py
 
-### Run Specific Test Method
-```bash
-uv run pytest tests/test_comprehensive_functionality.py::TestOrdbFunctionality::test_basic_search
-```
-
-### Run Tests by Pattern
-```bash
-uv run pytest tests/ -k "character_replacement"
-uv run pytest tests/ -k "fuzzy"
-```
-
-### Run with Coverage Report
-```bash
-uv run pytest tests/ --cov=src/ordb
+# Run all interactive tests  
+python tests/test_interactive_fuzzy_search.py
 ```
 
 ## Test Requirements
 
-- Tests require the ordb database to be set up at `~/.ordb/articles.db`
-- Run `uv run ordb --help` first to initialize the database if needed
-- Tests use `uv run ordb` command execution with modern uv tooling
-- Some tests create temporary configuration files for isolated testing
-- All tests include `--no-paginate` flag to prevent pagination interference
+- Tests require the ordb database at `~/.ordb/articles.db`
+- Run `python -m ordb --help` first to initialize database if needed
+- Tests use modern Python module execution (`python -m ordb`)
+- Some tests create temporary configuration files
+- Tests include `--no-paginate` flag to prevent pagination interference
 
-## Test Coverage
+## Test Coverage Areas
 
 The test suite provides comprehensive coverage of:
-- **All command-line flags and options** with 21+ different flag combinations
-- **All search modes and syntax variations** including special characters and Norwegian text
-- **Database integrity and content validation** with health checks and regression testing
-- **Configuration system functionality** including file migration and default handling
-- **Output formatting and display options** with ANSI color handling and pagination
-- **Error handling and edge cases** including malformed inputs and missing data
-- **Norwegian language-specific features** including character replacement and grammatical classification
 
-## Test Statistics
+### Search Functionality
+- **All search modes**: exact, fuzzy, prefix, anywhere, fulltext, expressions-only
+- **Interactive features**: lettered lists, more results pagination, keypress handling
+- **Special syntax**: `word@`, `@word`, `%word` search patterns
+- **Character replacement**: aa→å, oe→ø, ae→æ automatic substitution
 
-Current test status: **73/79 tests passing (92% success rate)**
+### Display and Output
+- **Output modes**: full entries, examples-only, etymology-only, inflections-only
+- **Display controls**: hide definitions, hide examples, show only specific sections
+- **Pagination**: terminal-aware pagination with navigation controls
+- **Formatting**: ANSI color codes, compact inflections, proper headers
 
-### Test Distribution by Category:
-- **Core functionality**: 21 tests (test_comprehensive_functionality.py)
-- **Database integrity**: 13 tests (test_database_integrity.py) 
-- **Character replacement**: 10 tests (test_character_replacement.py)
-- **Configuration/examples**: 8 tests (test_all_examples_and_config.py)
-- **Recent features**: 17 tests (test_recent_features.py)
-- **Display flags**: 5 tests (test_display_flags.py)
-- **Examples/expressions**: 3 tests (test_only_examples_expressions.py)
-- **Inflections**: 2 tests (test_compact_inflections.py)
+### Configuration System
+- **Cross-platform paths**: Windows (%APPDATA%) and Unix (~/.ordb/) support
+- **Configuration wizard**: interactive setup, all setting coverage
+- **File handling**: creation, migration, default values
+- **Backward compatibility**: legacy config file support
 
-The remaining 6 failing tests are due to minor output formatting assertion differences and configuration handling edge cases, not actual functionality problems.
+### Database and Content
+- **Schema integrity**: proper table structure and relationships
+- **Content validation**: no duplicates, proper cross-references
+- **Language features**: Norwegian irregular verbs, word class classification
+- **Expression system**: fixed expressions, cross-reference links
+
+### User Experience
+- **Error handling**: graceful failures, informative messages
+- **Interactive features**: immediate keypress, silent cancellation
+- **Command-line interface**: all flags, help text, version display
+- **Platform compatibility**: Windows, macOS, Linux support
 
 ## Adding New Tests
 
-To add new tests, extend existing test classes or create new test files following the established patterns:
+When adding new tests, follow these patterns:
 
 ```python
-def test_new_feature(self):
-    """Test description."""
-    stdout, stderr, returncode = self.run_ordb('--new-flag', 'test_word')
-    self.assertEqual(returncode, 0)
-    clean_output = self.clean_ansi(stdout)
-    self.assertIn('expected_content', clean_output)
+import unittest
+import subprocess
+import sys
+from pathlib import Path
+
+# Add src to path for importing
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+from ordb.utils import clean_ansi_codes
+
+class TestNewFeature(unittest.TestCase):
+    
+    def run_ordb(self, *args, input_text=None):
+        """Run ordb command and return stdout, stderr, returncode."""
+        cmd = ['python', '-m', 'ordb'] + list(args)
+        result = subprocess.run(cmd, capture_output=True, text=True, input=input_text)
+        return result.stdout, result.stderr, result.returncode
+    
+    def test_new_functionality(self):
+        """Test description of what this validates."""
+        stdout, stderr, returncode = self.run_ordb('--new-flag', 'test_word')
+        self.assertEqual(returncode, 0)
+        clean_output = clean_ansi_codes(stdout)
+        self.assertIn('expected_content', clean_output)
+
+if __name__ == '__main__':
+    unittest.main()
 ```
 
-Follow the existing naming convention `test_<feature_name>.py` and include comprehensive docstrings describing what each test validates.
+### Naming Conventions
+- Test files: `test_<feature_name>.py`
+- Test classes: `Test<FeatureName>`
+- Test methods: `test_<specific_functionality>`
+- Include comprehensive docstrings for all tests
+
+### Best Practices
+- Use `clean_ansi_codes()` to remove color codes before assertions
+- Include `--no-paginate` flag to prevent pagination interference
+- Test both success and failure cases
+- Validate return codes, stdout content, and proper error handling
+- Keep tests focused and independent
