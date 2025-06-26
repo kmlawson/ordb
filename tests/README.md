@@ -161,12 +161,14 @@ python -m unittest discover tests/ -p "test_*_unit.py" -v
 # First ensure database is installed
 ordb --help  # This will prompt to install database if needed
 
-# Run integration tests
+# Run integration tests (bypasses @unittest.skip decorators)
 ./tests/run_integration_tests.sh
 
-# Or manually
+# Or manually (will respect @unittest.skip decorators)
 python -m unittest discover tests/ -v
 ```
+
+**Important**: The `run_integration_tests.sh` script temporarily removes `@unittest.skip` decorators to actually run the integration tests. If you run tests manually with `unittest`, they will be skipped due to the decorators.
 
 ### Run Specific Test Files
 ```bash
