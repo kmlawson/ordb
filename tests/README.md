@@ -1,6 +1,6 @@
 # Test Suite Documentation
 
-This directory contains comprehensive tests for the ordb Norwegian dictionary search tool.
+This directory contains comprehensive tests for the ordb Norwegian dictionary search tool. The test suite includes both unit tests and integration tests covering all major functionality.
 
 ## Test Files Overview
 
@@ -107,53 +107,101 @@ This directory contains comprehensive tests for the ordb Norwegian dictionary se
 - Tests specific bug fixes and edge cases
 - Validates regression prevention
 
-## Test Statistics
+## Test Suite Organization
 
-**Current Status: 100% test success rate (14 test files, all passing)**
+The test suite is organized into two main categories:
 
-### Test Distribution:
-- **Interactive functionality**: 21 tests (fuzzy search, pagination, user interaction)
-- **Core functionality**: 21 tests (search modes, flags, basic operations)
-- **Database integrity**: 13 tests (data validation, schema, cross-references)
-- **Configuration system**: 10 tests (wizard, platform paths, file handling)
-- **Display features**: 9 tests (etymology flags, pagination, formatting)
-- **Language features**: 9 tests (character replacement, Norwegian-specific)
-- **Word filtering**: 4 tests (grammatical category filters)
-- **Examples system**: 3 tests (examples-only mode, expressions)
-- **Platform support**: 6 tests (Windows/Unix compatibility)
-- **Inflection display**: 2 tests (formatting, multiline output)
+### Unit Tests (255 tests)
+- **test_cli_unit.py** - Command-line interface unit tests
+- **test_config_unit.py** - Configuration system unit tests  
+- **test_core_unit.py** - Core search functionality unit tests
+- **test_display_unit.py** - Display formatting unit tests
+- **test_pagination_unit.py** - Pagination system unit tests
+- **test_utils_unit.py** - Utility functions unit tests
+- **test_wizard_unit.py** - Configuration wizard unit tests
+
+### Integration Tests (114 tests)
+- **test_comprehensive_functionality.py** - Complete CLI workflow tests
+- **test_database_integrity.py** - Database validation and health checks
+- **test_interactive_fuzzy_search.py** - Interactive search functionality
+- **test_character_replacement.py** - Norwegian character substitution
+- **test_word_filters.py** - Grammatical category filtering
+- **test_pagination.py** - Terminal pagination system
+- **test_etymology_flags.py** - Etymology display options
+- **test_inflection_flags.py** - Inflection display options
+- **test_display_flags.py** - Output control flags
+- **test_config_wizard_completeness.py** - Configuration system validation
+- **test_platform_paths.py** - Cross-platform compatibility
+- **test_all_examples_and_config.py** - Examples search and config integration
+- **test_only_examples_expressions.py** - Expression handling
+- **test_compact_inflections.py** - Inflection formatting
+
+### Test Coverage Areas:
+- **Interactive functionality**: Fuzzy search, pagination, user interaction
+- **Core functionality**: Search modes, flags, basic operations  
+- **Database integrity**: Data validation, schema, cross-references
+- **Configuration system**: Wizard, platform paths, file handling
+- **Display features**: Etymology flags, pagination, formatting
+- **Language features**: Character replacement, Norwegian-specific functionality
+- **Platform support**: Windows/Unix compatibility
 
 ## Running Tests
 
-### Run All Tests
+### Run Unit Tests (Fast, No Database Required)
 ```bash
-python tests/test_comprehensive_functionality.py
-# or
-find tests -name "test_*.py" -exec python {} \;
+# Run all unit tests
+./tests/run_unit_tests.sh
+
+# Or manually with unittest
+python -m unittest discover tests/ -p "test_*_unit.py" -v
 ```
 
-### Run Specific Test File
+### Run Integration Tests (Requires Database)
 ```bash
-python tests/test_interactive_fuzzy_search.py
-python tests/test_database_integrity.py
+# First ensure database is installed
+ordb --help  # This will prompt to install database if needed
+
+# Run integration tests
+./tests/run_integration_tests.sh
+
+# Or manually
+python -m unittest discover tests/ -v
 ```
 
-### Run with Pattern Matching
+### Run Specific Test Files
 ```bash
-# Run all character replacement tests
-python tests/test_character_replacement.py
+# Unit tests
+python -m unittest tests.test_cli_unit
+python -m unittest tests.test_core_unit
 
-# Run all interactive tests  
-python tests/test_interactive_fuzzy_search.py
+# Integration tests  
+python -m unittest tests.test_comprehensive_functionality
+python -m unittest tests.test_database_integrity
 ```
+
+### Test Runner Scripts
+The project includes convenient test runner scripts:
+- **run_unit_tests.sh** - Runs only unit tests (fast, isolated)
+- **run_integration_tests.sh** - Runs integration tests (requires database)
 
 ## Test Requirements
 
-- Tests require the ordb database at `~/.ordb/articles.db`
-- Run `python -m ordb --help` first to initialize database if needed
-- Tests use modern Python module execution (`python -m ordb`)
-- Some tests create temporary configuration files
-- Tests include `--no-paginate` flag to prevent pagination interference
+### Unit Tests
+- **No external dependencies**: Run without database or configuration files
+- **Fast execution**: Isolated tests with mocked dependencies
+- **Python 3.8+**: Compatible with all supported Python versions
+
+### Integration Tests  
+- **Database required**: Integration tests need the ordb database at `~/.ordb/articles.db`
+- **Full application**: Tests use complete ordb installation (`python -m ordb`)
+- **Interactive components**: Some tests simulate user input and keypress interactions
+- **Temporary files**: Tests may create temporary configuration files
+- **Anti-pagination**: Tests include `--no-paginate` flag to prevent pagination interference
+
+### Important Notes
+- **Test framework**: Uses Python `unittest` module (not pytest)
+- **Skipped tests**: Some integration tests are marked with `@unittest.skip` due to environment-specific issues
+- **Database initialization**: Run `ordb --help` first to install database if needed for integration tests
 
 ## Test Coverage Areas
 
