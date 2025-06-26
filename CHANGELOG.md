@@ -9,13 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Homebrew Installation Support**: Added custom Homebrew tap for easy installation on macOS and Linux
-  - Users can now install with: `brew tap kmlawson/tools && brew install ordb`
+  - Users can now install with: `brew tap kmlawson/tools && brew install kmlawson/tools/ordb`
   - Custom tap bypasses Homebrew core notability requirements
   - Formula uses Python 3.13 for optimal performance and compatibility
 
 ### Changed
 - **Updated Installation Documentation**: Added Homebrew as the primary installation method for macOS/Linux users
 - **Improved Installation Options**: Now provides three convenient installation methods (Homebrew, uv, pip)
+
+### Fixed
+- **Homebrew Installation Command**: Updated to use full tap path (`brew install kmlawson/tools/ordb`) to prevent formula conflicts and ensure correct installation
 
 ## [0.5.0] - 2025-06-26
 
