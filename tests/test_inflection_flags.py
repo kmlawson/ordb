@@ -15,19 +15,14 @@ class TestInflectionFlags(unittest.TestCase):
     
     def setUp(self):
         """Set up test environment."""
-        self.search_cmd = ['python', '-m', 'src.ordb']
-        # Use relative path to database from project root
-        self.db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'articles.db')
+        self.search_cmd = ['ordb']  # Use installed ordb command
+        # Use the actual ordb database location (no --db needed)
+        self.common_args = ['--no-paginate']  # Prevent pagination hanging
     
     def run_search(self, query, *args, input_text=None):
         """Run search command and return output."""
-        cmd = self.search_cmd + list(args) + ['--db', self.db_path, query]
-        # Change to the correct directory
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # Set PYTHONPATH to parent directory so src.ordb can be found
-        env = os.environ.copy()
-        env['PYTHONPATH'] = project_root
-        result = subprocess.run(cmd, capture_output=True, text=True, input=input_text, cwd=project_root, env=env)
+        cmd = self.search_cmd + self.common_args + list(args) + [query]
+        result = subprocess.run(cmd, capture_output=True, text=True, input=input_text, timeout=30)
         return result.stdout, result.stderr, result.returncode
     
     def test_only_inflections_flag(self):
