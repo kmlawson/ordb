@@ -200,8 +200,10 @@ The project includes convenient test runner scripts:
 
 ### Important Notes
 - **Test framework**: Uses Python `unittest` module (not pytest)
-- **Skipped tests**: Some integration tests are marked with `@unittest.skip` due to environment-specific issues
+- **Skipped integration tests**: Most integration tests are currently marked with `@unittest.skip("Integration test - requires full app setup and may freeze")` due to hanging/freezing issues in automated test environments
+- **Active integration tests**: Only a few integration tests currently run (like `test_platform_paths.py`)
 - **Database initialization**: Run `ordb --help` first to install database if needed for integration tests
+- **Test output**: When running integration tests, you'll see `OK (skipped=X)` for most test files due to skip decorators
 
 ## Test Coverage Areas
 
