@@ -16,7 +16,6 @@ A fast, feature-rich command-line tool for searching an extensive Norwegian bokm
 
 ## Installation
 
-
 ### Using uv (recommended)
 ```bash
 uv tool install ordb
@@ -166,29 +165,35 @@ $ ordb nord
       "byen ligger nord for sjøen"; "dra nord i landet"
   Etymology: norr. norðr | jamfør nordre og nørdst
 
-
 Found 2 results.
 ```
 
 ### Interactive Fuzzy Search
 ```bash
-$ ordb -f huse
-🔍 Fuzzy search for '~huse' (threshold: 0.6)
-Found 15 similar matches (showing first 15):
+$ ordb -f bekk
+🔍 Fuzzy search for '~bekk' (threshold: 0.6)
+Found 219 similar matches (showing first 15):
 
-  a) huse [verb]
-  b) hus [noun] (neuter)
-  c) huser [noun] (masculine)
-  d) husere [verb]
-  e) house [noun]
-  ...
-  o) husgud [noun]
-  0) ...more results (25 additional matches)
+  a) bekk [noun]
+  b) blekk [noun]
+  c) brekk [noun]
+  d) brekk [noun]
+  e) bek [noun]
+  f) bekken [noun]
+  g) blekke [noun]
+  h) brekke [verb]
+  i) brekke [verb]
+  j) brekke [noun]
+  k) bakk [noun]
+  l) bakk [adv]
+  m) beke [verb]
+  n) benk [noun]
+  o) besk [adj]
+  0) ...more results (204 additional matches)
 
-Press a letter to view the entry, 0 or spacebar for more results, or Enter to cancel: a
-📖 huse [verb]
-  1. gi ly til; ha som beboer...
+Press a letter to view the entry, 0 or spacebar for more results, or Enter to cancel:
 ```
+
 
 ### Examples Only
 ```bash
@@ -229,34 +234,88 @@ This tool was built entirely with Claude Code (1.0.35, in June 2025) with Konrad
 ordb/
 ├── src/ordb/
 │   ├── __init__.py      # Package initialization
+│   ├── __main__.py     # Entry point for python -m ordb
 │   ├── cli.py          # Command-line interface
 │   ├── config.py       # Configuration management
 │   ├── core.py         # Search engine with interactive modes
 │   ├── display.py      # Output formatting
 │   ├── pagination.py   # Terminal UI and navigation
-│   └── utils.py        # Shared utility functions
+│   ├── utils.py        # Shared utility functions
+│   └── wizard.py       # Configuration wizard module
 ├── db/
+│   ├── articles.db.gz  # Compressed database (included in package)
 │   ├── json-to-db.py   # Database creation script
 │   └── irregular_verbs.json  # Norwegian irregular verb database
-├── tests/              # Comprehensive test suite (14 test files)
-├── config-wizard.py    # Interactive configuration wizard
-└── CHANGELOG.md        # Version history
+├── tests/              # Comprehensive test suite (21 test files)
+│   ├── test_*_unit.py  # Unit tests (255 tests)
+│   ├── test_*.py       # Integration tests (114 tests)
+│   ├── run_unit_tests.sh      # Script to run unit tests only
+│   └── run_integration_tests.sh  # Script to run integration tests
+├── htmlcov/            # Coverage reports (in .gitignore)
+├── CHANGELOG.md        # Version history
+├── LICENSE             # MIT license
+├── README.md           # This file
+├── pyproject.toml      # Package configuration
+├── setup.cfg           # Setup configuration
+└── .gitignore          # Git ignore file
 ```
 
 ### Running Tests
-```bash
-# Run all tests
-python -m pytest tests/
 
-# Run specific test category
-python -m pytest tests/test_search.py
+The test suite includes both unit tests and integration tests:
+
+**Unit Tests** (250 passing, 5 skipped, 95% coverage):
+```bash
+# Run only unit tests (fast, no database needed)
+./tests/run_unit_tests.sh
+
+# Or manually:
+python -m unittest discover tests/ -p "test_*_unit.py" -v
 ```
+
+**Integration Tests** (114 tests, all skipped, requires database):
+```bash
+# First ensure you have the database installed
+ordb --help  # This will prompt to install database if needed
+
+# Run integration tests (may take time)
+./tests/run_integration_tests.sh
+
+# Or run all tests including integration tests
+python -m unittest discover tests/ -v
+```
+
+**Note**: Integration tests are currently marked with `@unittest.skip` because they:
+- Launch the full ordb application 
+- May prompt for user input
+- Require the database to be installed
+- Can timeout in CI environments
+
+To run them, remove the `@unittest.skip` decorators or use the `run_integration_tests.sh` script.
 
 ### Building Database
-```bash
-# Create database from JSON source
-python db/json-to-db.py
-```
+
+To build the database from source data:
+
+1. **Download the source data**:
+   Visit https://ord.uib.no/ and go to the "ordlister" section to download `articles.json.gz`
+
+2. **Extract and place the file**:
+   ```bash
+   # Extract the downloaded file
+   gunzip articles.json.gz
+   
+   # Move to the db directory
+   mv articles.json db/
+   ```
+
+3. **Create the database**:
+   ```bash
+   # Run the database creation script
+   python db/json-to-db.py
+   ```
+
+The resulting `articles.db` file will be created in the project root directory.
 
 ## License
 

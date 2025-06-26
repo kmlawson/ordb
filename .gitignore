@@ -36,5 +36,8 @@ old/
 .coverage
 htmlcov/
 
+# Lock files
+uv.lock
+
 # Development documentation (not for public repo)
 README-DEV.md

@@ -1,0 +1,43 @@
+[run]
+source = src/ordb
+omit = 
+    # Exclude test files from coverage
+    tests/*
+    # Exclude __pycache__ and .pyc files
+    */__pycache__/*
+    *.pyc
+    # Exclude main entry points
+    src/ordb/__main__.py
+
+[coverage:report]
+exclude_lines =
+    # Standard pragma for manual exclusions
+    pragma: no cover
+    
+    # Only exclude the main() entry point function definition line in cli.py
+    # All other code within main() should be tested
+    def main\(\):.*
+    
+    # Only exclude if __name__ == "__main__" blocks (script entry points)
+    if __name__ == .__main__.:
+    
+    # Only exclude user interrupt handling (Ctrl+C)
+    except KeyboardInterrupt:
+    
+    # Only exclude sys.exit() calls (program termination)
+    sys\.exit\(
+    
+[report]
+# Show missing lines in report
+show_missing = true
+# Skip covered files in report (optional)
+skip_covered = false
+# Fail if coverage is below this percentage
+fail_under = 10
+
+[html]
+directory = htmlcov
+title = ordb Coverage Report
+
+[xml]
+output = coverage.xml

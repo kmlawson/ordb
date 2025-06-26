@@ -610,8 +610,11 @@ def search_fuzzy_interactive(conn, query, threshold=0.6, include_expr=False, off
         # Apply fuzzy highlighting to show matching vs non-matching characters
         highlighted_lemma = _highlight_fuzzy_differences(query, lemma, Colors)
         
+        # Add homonym number if it exists and is greater than 1
+        homonym_display = f" ({homonym_number})" if homonym_number and homonym_number > 1 else ""
+        
         # Display entry
-        print(f"  {Colors.BOLD}{letters[i]}){Colors.END} {highlighted_lemma}{word_class_display}{gender_display}")
+        print(f"  {Colors.BOLD}{letters[i]}){Colors.END} {highlighted_lemma}{homonym_display}{word_class_display}{gender_display}")
     
     # Display "more results" option if needed
     if has_more_results:
@@ -645,9 +648,10 @@ def search_fuzzy_interactive(conn, query, threshold=0.6, include_expr=False, off
     # Find the selected entry
     for i, letter in enumerate(letters):
         if choice == letter and i < len(matches):
+            print()  # Add newline before showing the entry
             return matches[i]
     
-    print(f"{Colors.WARNING}Invalid selection.{Colors.END}")
+    print(f"\n{Colors.WARNING}Invalid selection.{Colors.END}")
     return 'CANCELLED'
 
 
@@ -731,8 +735,11 @@ def search_prefix_interactive(conn, query, include_expr=False, offset=0):
         # Apply prefix highlighting to show the matching prefix
         highlighted_lemma = _highlight_prefix_match(query, lemma, Colors)
         
+        # Add homonym number if it exists and is greater than 1
+        homonym_display = f" ({homonym_number})" if homonym_number and homonym_number > 1 else ""
+        
         # Display entry
-        print(f"  {Colors.BOLD}{letters[i]}){Colors.END} {highlighted_lemma}{word_class_display}{gender_display}")
+        print(f"  {Colors.BOLD}{letters[i]}){Colors.END} {highlighted_lemma}{homonym_display}{word_class_display}{gender_display}")
     
     # Display "more results" option if needed
     if has_more_results:
@@ -766,9 +773,10 @@ def search_prefix_interactive(conn, query, include_expr=False, offset=0):
     # Find the selected entry
     for i, letter in enumerate(letters):
         if choice == letter and i < len(matches):
+            print()  # Add newline before showing the entry
             return matches[i]
     
-    print(f"{Colors.WARNING}Invalid selection.{Colors.END}")
+    print(f"\n{Colors.WARNING}Invalid selection.{Colors.END}")
     return 'CANCELLED'
 
 
@@ -852,8 +860,11 @@ def search_anywhere_term_interactive(conn, query, include_expr=False, offset=0):
         # Apply anywhere highlighting to show the matching substring
         highlighted_lemma = _highlight_anywhere_match(query, lemma, Colors)
         
+        # Add homonym number if it exists and is greater than 1
+        homonym_display = f" ({homonym_number})" if homonym_number and homonym_number > 1 else ""
+        
         # Display entry
-        print(f"  {Colors.BOLD}{letters[i]}){Colors.END} {highlighted_lemma}{word_class_display}{gender_display}")
+        print(f"  {Colors.BOLD}{letters[i]}){Colors.END} {highlighted_lemma}{homonym_display}{word_class_display}{gender_display}")
     
     # Display "more results" option if needed
     if has_more_results:
@@ -887,9 +898,10 @@ def search_anywhere_term_interactive(conn, query, include_expr=False, offset=0):
     # Find the selected entry
     for i, letter in enumerate(letters):
         if choice == letter and i < len(matches):
+            print()  # Add newline before showing the entry
             return matches[i]
     
-    print(f"{Colors.WARNING}Invalid selection.{Colors.END}")
+    print(f"\n{Colors.WARNING}Invalid selection.{Colors.END}")
     return 'CANCELLED'
 
 

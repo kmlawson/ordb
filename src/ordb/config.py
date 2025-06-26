@@ -39,25 +39,13 @@ def get_data_dir():
 
 
 def get_config_path():
-    """Get the path to the configuration file, checking multiple locations."""
+    """Get the path to the configuration file."""
     # Primary location (platform-appropriate)
     primary_config = get_config_dir() / 'config'
     
-    # Legacy locations in order of preference
-    legacy_config_paths = [
-        Path.home() / '.config' / 'ordb' / 'config',
-        Path.home() / '.config-ordb',
-        Path('.config-bm'),  # Legacy support
-    ]
-    
-    # Check primary location first
+    # Check if config exists
     if primary_config.exists():
         return primary_config
-    
-    # Check legacy locations
-    for path in legacy_config_paths:
-        if path.exists():
-            return path
     
     return None
 
@@ -133,29 +121,8 @@ class Colors:
     
     def load_config(self):
         """Load color configuration from config file."""
-        # Primary location (platform-appropriate)
-        primary_config = get_config_dir() / 'config'
-        
-        # Legacy locations in order of preference
-        legacy_config_paths = [
-            Path.home() / '.config' / 'ordb' / 'config',
-            Path.home() / '.config-ordb',
-            Path('.config-bm'),  # Legacy support
-        ]
-        
-        config_path = None
-        
-        # Check primary location first
-        if primary_config.exists():
-            config_path = primary_config
-        else:
-            # Check legacy locations
-            for path in legacy_config_paths:
-                if path.exists():
-                    config_path = path
-                    # Migrate to new location
-                    self._migrate_config(path, primary_config)
-                    break
+        # Get config file path
+        config_path = get_config_path()
         
         if not config_path:
             return
@@ -195,25 +162,8 @@ class Colors:
                     if color_value in COLOR_MAP:
                         setattr(self, attr_name, COLOR_MAP[color_value])
         
-        except Exception as e:
-            # Silently ignore config errors and use defaults
-            pass
-    
-    def _migrate_config(self, old_path, new_path):
-        """Migrate config from legacy location to new location."""
-        try:
-            # Create new directory if needed
-            new_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Copy config file
-            import shutil
-            shutil.copy2(old_path, new_path)
-            
-            # Update config_path to use new location
-            config_path = new_path
-            
         except Exception:
-            # If migration fails, continue using old location
+            # Silently ignore config errors and use defaults
             pass
 
 class SearchConfig:
@@ -238,30 +188,8 @@ class SearchConfig:
     def load_config(self):
         """Load search settings from config file."""
         try:
-            # Primary location (platform-appropriate)
-            primary_config = get_config_dir() / 'config'
-            
-            # Legacy locations in order of preference
-            legacy_config_paths = [
-                Path.home() / '.config' / 'ordb' / 'config',
-                Path.home() / '.config-ordb',
-                Path('.config-bm'),  # Legacy support
-            ]
-            
-            config_path = None
-            
-            # Check primary location first
-            if primary_config.exists():
-                config_path = primary_config
-            else:
-                # Check legacy locations
-                for path in legacy_config_paths:
-                    if path.exists():
-                        config_path = path
-                        # Migrate to new location
-                        self._migrate_config(path, primary_config)
-                        config_path = primary_config  # Use new location
-                        break
+            # Get config file path
+            config_path = get_config_path()
             
             if not config_path:
                 return
@@ -332,20 +260,6 @@ class SearchConfig:
                     self.interactive_anywhere_search = config['search'].getboolean('interactive_anywhere_search', True)
         except:
             # If anything goes wrong, just use defaults
-            pass
-    
-    def _migrate_config(self, old_path, new_path):
-        """Migrate config from legacy location to new location."""
-        try:
-            # Create new directory if needed
-            new_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Copy config file
-            import shutil
-            shutil.copy2(old_path, new_path)
-            
-        except Exception:
-            # If migration fails, continue using old location
             pass
 
 def apply_character_replacement(query):

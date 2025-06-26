@@ -26,3 +26,13 @@ exclude *.pyc
 recursive-exclude . __pycache__
 recursive-exclude . *.py[co]
 recursive-exclude . .DS_Store
+recursive-exclude . .venv
+exclude uv.lock
+exclude coverage.svg
+exclude install.sh
+exclude ordb.rb.template
+exclude ordb
+exclude README-DEV.md
+recursive-exclude tests run_*.sh
+recursive-exclude tests stein_original.html
+exclude tests/test_performance_report.md
