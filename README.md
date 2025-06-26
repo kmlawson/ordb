@@ -16,6 +16,12 @@ A fast, feature-rich command-line tool for searching an extensive Norwegian bokm
 
 ## Installation
 
+### Using Homebrew (macOS/Linux)
+```bash
+brew tap kmlawson/tools
+brew install ordb
+```
+
 ### Using uv (recommended)
 ```bash
 uv tool install ordb
