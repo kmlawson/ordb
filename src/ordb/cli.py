@@ -200,6 +200,9 @@ def main():
     
     # Connect to database
     conn = setup_database(args.db)
+    if conn is None:
+        print(f"{Colors.ERROR}Failed to setup database. Exiting.{Colors.END}")
+        sys.exit(1)
     
     # Handle test mode
     if args.test:

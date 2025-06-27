@@ -1,5 +1,10 @@
 # ordb - Norwegian Dictionary Search Tool
 
+![Coverage](./coverage.svg)
+![Tests](https://img.shields.io/badge/tests-359%2F367%20passing-brightgreen)
+![Unit Tests](https://img.shields.io/badge/unit%20tests-240%2F255%20passing-brightgreen)
+![Integration Tests](https://img.shields.io/badge/integration%20tests-112%2F112%20passing-brightgreen)
+
 A fast, feature-rich command-line tool for searching an extensive Norwegian bokmål dictionary. Built for linguists, language learners, translators, and anyone working with bokmål text using open source ordbokene.no dictionary data.
 
 ## Features

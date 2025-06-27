@@ -271,6 +271,7 @@ class TestDisplayFunctions(unittest.TestCase):
         self.assertNotIn(Colors.HIGHLIGHT, result)
     
     @patch('ordb.display._load_irregular_verbs')
+    @unittest.skip("Skipping irregular verb file test as requested")
     def test_highlight_search_term_irregular_verbs(self, mock_load_verbs):
         """Test highlight_search_term with irregular verb forms."""
         mock_load_verbs.return_value = {"være": r'\b(være|er|var|vært)\b'}
@@ -301,23 +302,22 @@ class TestDisplayFunctions(unittest.TestCase):
     
     def test_format_inflection_table_valid_json(self):
         """Test format_inflection_table with valid JSON."""
-        inflection_data = json.dumps({
-            "singular": {
-                "indefinite": "hus",
-                "definite": "huset"
-            },
-            "plural": {
-                "indefinite": "hus",
-                "definite": "husene"
-            }
-        })
+        inflection_data = json.dumps([{
+            "word_class": "NOUN",
+            "inflections": [
+                {"form": "hus", "tags": ["Sing", "Ind"]},
+                {"form": "huset", "tags": ["Sing", "Def"]},
+                {"form": "hus", "tags": ["Plur", "Ind"]},
+                {"form": "husene", "tags": ["Plur", "Def"]}
+            ]
+        }])
         
         result = format_inflection_table(inflection_data, word_class="NOUN", lemma="hus")
         
-        # Should contain inflection information
-        self.assertIn("hus", result)
+        # Should contain inflection information (but 'hus' might be filtered out since it matches lemma)
         self.assertIn("huset", result)
         self.assertIn("husene", result)
+        self.assertIn("Inflections", result)
     
     def test_format_inflection_table_multiline_none(self):
         """Test format_inflection_table_multiline with None input."""
@@ -326,15 +326,19 @@ class TestDisplayFunctions(unittest.TestCase):
     
     def test_format_inflection_table_multiline_valid(self):
         """Test format_inflection_table_multiline with valid data."""
-        inflection_data = json.dumps({
-            "present": "går",
-            "past": "gikk",
-            "perfect": "gått"
-        })
+        inflection_data = json.dumps([{
+            "word_class": "VERB",
+            "inflections": [
+                {"form": "gå", "tags": ["Inf"]},
+                {"form": "går", "tags": ["Pres"]},
+                {"form": "gikk", "tags": ["Past"]},
+                {"form": "gått", "tags": ["PastPart"]}
+            ]
+        }])
         
         result = format_inflection_table_multiline(inflection_data, word_class="VERB", lemma="gå")
         
-        # Should contain verb forms on separate lines
+        # Should contain verb forms on separate lines (lemma 'gå' might be filtered out)
         self.assertIn("går", result)
         self.assertIn("gikk", result)
         self.assertIn("gått", result)

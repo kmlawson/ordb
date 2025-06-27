@@ -10,14 +10,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 from ordb.utils import clean_ansi_codes
 
 
-@unittest.skip("Integration test - requires full app setup and may freeze")
 class TestPagination(unittest.TestCase):
     
     def setUp(self):
         """Set up test environment."""
         self.search_cmd = ['ordb']  # Use installed ordb command
         # Use the actual ordb database location (no --db needed)
-        self.common_args = ['--no-paginate']  # Always disable pagination for testing
+        self.no_paginate_args = ['--no-paginate']  # For tests that need pagination disabled
+        self.paginate_args = []  # For tests that need pagination enabled
         
         # Create temporary config for pagination tests
         self.original_config = None
@@ -36,9 +36,10 @@ class TestPagination(unittest.TestCase):
             # Remove test config if original didn't exist
             self.config_path.unlink()
     
-    def run_search(self, query, *args, input_text=None):
+    def run_search(self, query, *args, input_text=None, allow_pagination=False):
         """Run search command and return output."""
-        cmd = self.search_cmd + self.common_args + list(args) + [query]
+        base_args = self.paginate_args if allow_pagination else self.no_paginate_args
+        cmd = self.search_cmd + base_args + list(args) + [query]
         result = subprocess.run(cmd, capture_output=True, text=True, input=input_text, timeout=30)
         return result.stdout, result.stderr, result.returncode
     
@@ -60,7 +61,7 @@ show_etymology = True
         self.create_test_config(pagination=True, page_size=10)
         
         # Search for something that will produce long output
-        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n')
+        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n', allow_pagination=True)
         self.assertEqual(returncode, 0)
         
         clean_output = clean_ansi_codes(stdout)
@@ -90,7 +91,7 @@ show_etymology = True
         self.create_test_config(pagination=False, page_size=10)
         
         # Use -p flag to force pagination
-        stdout, stderr, returncode = self.run_search('hus', '-p', '--limit', '1', input_text='q\n')
+        stdout, stderr, returncode = self.run_search('hus', '-p', '--limit', '1', input_text='q\n', allow_pagination=True)
         self.assertEqual(returncode, 0)
         
         clean_output = clean_ansi_codes(stdout)
@@ -105,7 +106,7 @@ show_etymology = True
         self.create_test_config(pagination=True, page_size=5)
         
         # Search with 'q' input to quit pagination
-        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n')
+        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n', allow_pagination=True)
         self.assertEqual(returncode, 0)
         
         clean_output = clean_ansi_codes(stdout)
@@ -132,7 +133,7 @@ show_etymology = True
         self.create_test_config(pagination=True, page_size=5)
         
         # Search and quit immediately to get first page
-        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n')
+        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n', allow_pagination=True)
         self.assertEqual(returncode, 0)
         
         # Should contain ANSI color codes (not cleaned)
@@ -146,7 +147,7 @@ show_etymology = True
         self.create_test_config(pagination=True, page_size=3)
         
         # Search for a word that produces long entries
-        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n')
+        stdout, stderr, returncode = self.run_search('hus', '--limit', '1', input_text='q\n', allow_pagination=True)
         self.assertEqual(returncode, 0)
         
         clean_output = clean_ansi_codes(stdout)
@@ -162,7 +163,7 @@ show_etymology = True
         # Create config with small page size
         self.create_test_config(pagination=True, page_size=3)
         
-        stdout, stderr, returncode = self.run_search('hus', '-e', '--limit', '1', input_text='q\n')
+        stdout, stderr, returncode = self.run_search('hus', '-e', '--limit', '1', input_text='q\n', allow_pagination=True)
         self.assertEqual(returncode, 0)
         
         clean_output = clean_ansi_codes(stdout)
@@ -175,7 +176,7 @@ show_etymology = True
         # Create config with small page size  
         self.create_test_config(pagination=True, page_size=5)
         
-        stdout, stderr, returncode = self.run_search('stor', '--adj', '--limit', '2', input_text='q\n')
+        stdout, stderr, returncode = self.run_search('stor', '--adj', '--limit', '2', input_text='q\n', allow_pagination=True)
         self.assertEqual(returncode, 0)
         
         clean_output = clean_ansi_codes(stdout)

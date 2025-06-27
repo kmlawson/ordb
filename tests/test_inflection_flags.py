@@ -10,7 +10,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 from ordb.utils import clean_ansi_codes
 
 
-@unittest.skip("Integration test - requires full app setup and may freeze")
 class TestInflectionFlags(unittest.TestCase):
     
     def setUp(self):

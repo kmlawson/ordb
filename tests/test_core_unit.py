@@ -124,27 +124,28 @@ class TestDatabaseFunctions(unittest.TestCase):
             mock_gzip_open.assert_called()
             mock_file.assert_called()
     
-    @patch('importlib.resources.files')
-    def test_extract_bundled_database_not_found(self, mock_files):
+    @patch('pathlib.Path.exists', return_value=False)  # Mock no database files found
+    def test_extract_bundled_database_not_found(self, mock_exists):
         """Test bundled database extraction when file not found."""
-        mock_package = MagicMock()
-        mock_db_file = MagicMock()
-        mock_db_file.exists.return_value = False
-        mock_package.__truediv__.return_value = mock_db_file
-        mock_files.return_value = mock_package
+        # Mock all file existence checks to return False
+        mock_exists.return_value = False
         
         # Function takes no arguments, uses config to determine path
         result = extract_bundled_database()
-        self.assertFalse(result)
+        self.assertIsNone(result)  # Should return None when no bundled data found
     
-    @patch('importlib.resources.files')
-    def test_extract_bundled_database_exception(self, mock_files):
+    @patch('builtins.input', return_value='n')  # Mock user declining setup
+    @patch('pathlib.Path.exists', return_value=False)  # Mock no database files found
+    @patch('pathlib.Path.read_bytes')  # Mock file reading
+    def test_extract_bundled_database_exception(self, mock_read_bytes, mock_exists, mock_input):
         """Test bundled database extraction with exception."""
-        mock_files.side_effect = Exception("Import error")
+        # Mock all file existence checks to return False
+        mock_exists.return_value = False
+        mock_read_bytes.side_effect = Exception("File read error")
         
         # Function takes no arguments, uses config to determine path
         result = extract_bundled_database()
-        self.assertFalse(result)
+        self.assertIsNone(result)  # Should return None when no bundled data found
     
     def test_setup_database_exists(self):
         """Test setup_database when database already exists."""
@@ -167,25 +168,30 @@ class TestDatabaseFunctions(unittest.TestCase):
     @patch('sqlite3.connect')
     def test_setup_database_extract_bundled_success(self, mock_connect, mock_extract):
         """Test setup_database successfully extracts bundled database."""
-        mock_extract.return_value = True
-        mock_conn = MagicMock()
-        mock_connect.return_value = mock_conn
-        
+        # Mock extract_bundled_database to return a Path object
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / 'nonexistent.db'
+            extracted_path = Path(temp_dir) / 'extracted.db'
+            extracted_path.touch()  # Create the file so .exists() returns True
+            
+            mock_extract.return_value = extracted_path
+            mock_conn = MagicMock()
+            mock_connect.return_value = mock_conn
             
             result = setup_database(db_path)
             
-            mock_extract.assert_called_once_with(db_path)
-            mock_connect.assert_called_once_with(str(db_path))
+            mock_extract.assert_called_once()
+            mock_connect.assert_called_once_with(extracted_path)
             self.assertEqual(result, mock_conn)
     
+    @patch('builtins.input', return_value='')  # Mock user pressing Enter (use default URL)
     @patch('ordb.core.extract_bundled_database')
     @patch('ordb.core.download_database')
     @patch('sqlite3.connect')
-    def test_setup_database_download_fallback(self, mock_connect, mock_download, mock_extract):
+    def test_setup_database_download_fallback(self, mock_connect, mock_download, mock_extract, mock_input):
         """Test setup_database falls back to download when extraction fails."""
-        mock_extract.return_value = False
+        mock_extract.return_value = None  # Extraction fails
+        mock_download.return_value = True  # Download succeeds
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
         
@@ -194,7 +200,7 @@ class TestDatabaseFunctions(unittest.TestCase):
             
             result = setup_database(db_path)
             
-            mock_extract.assert_called_once_with(db_path)
+            mock_extract.assert_called_once()
             mock_download.assert_called_once()
             self.assertEqual(result, mock_conn)
 
@@ -233,39 +239,45 @@ class TestSearchUtilities(unittest.TestCase):
     
     def test_parse_search_query_exact(self):
         """Test parse_search_query with exact search."""
-        search_type, query = parse_search_query("hus")
+        search_type, query, original_query = parse_search_query("hus")
         self.assertEqual(search_type, "exact")
         self.assertEqual(query, "hus")
+        self.assertEqual(original_query, "hus")
     
     def test_parse_search_query_prefix(self):
         """Test parse_search_query with prefix search."""
-        search_type, query = parse_search_query("hus@")
+        search_type, query, original_query = parse_search_query("hus@")
         self.assertEqual(search_type, "prefix")
         self.assertEqual(query, "hus")
+        self.assertEqual(original_query, "hus@")
     
     def test_parse_search_query_anywhere(self):
         """Test parse_search_query with anywhere search."""
-        search_type, query = parse_search_query("@hus")
-        self.assertEqual(search_type, "anywhere")
+        search_type, query, original_query = parse_search_query("@hus")
+        self.assertEqual(search_type, "anywhere_term")
         self.assertEqual(query, "hus")
+        self.assertEqual(original_query, "@hus")
     
     def test_parse_search_query_fulltext(self):
         """Test parse_search_query with fulltext search."""
-        search_type, query = parse_search_query("%bygning")
+        search_type, query, original_query = parse_search_query("%bygning")
         self.assertEqual(search_type, "fulltext")
         self.assertEqual(query, "bygning")
+        self.assertEqual(original_query, "%bygning")
     
     def test_parse_search_query_empty(self):
         """Test parse_search_query with empty string."""
-        search_type, query = parse_search_query("")
+        search_type, query, original_query = parse_search_query("")
         self.assertEqual(search_type, "exact")
         self.assertEqual(query, "")
+        self.assertEqual(original_query, "")
     
     def test_parse_search_query_only_symbols(self):
         """Test parse_search_query with only symbols."""
-        search_type, query = parse_search_query("@")
-        self.assertEqual(search_type, "anywhere")
+        search_type, query, original_query = parse_search_query("@")
+        self.assertEqual(search_type, "anywhere_term")
         self.assertEqual(query, "")
+        self.assertEqual(original_query, "@")
 
 
 class TestSearchFunctions(unittest.TestCase):
@@ -301,27 +313,35 @@ class TestSearchFunctions(unittest.TestCase):
         
         cursor.execute('''
             CREATE TABLE definitions (
-                definition_id INTEGER PRIMARY KEY,
-                article_id INTEGER,
-                definition_text TEXT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                article_id TEXT,
+                definition_id INTEGER,
+                parent_id INTEGER,
+                level INTEGER,
+                content TEXT,
+                order_num INTEGER,
                 FOREIGN KEY (article_id) REFERENCES articles (article_id)
             )
         ''')
         
         cursor.execute('''
             CREATE TABLE examples (
-                example_id INTEGER PRIMARY KEY,
-                article_id INTEGER,
-                example_text TEXT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                article_id TEXT,
+                definition_id INTEGER,
+                quote TEXT,
+                explanation TEXT,
                 FOREIGN KEY (article_id) REFERENCES articles (article_id)
             )
         ''')
         
         cursor.execute('''
             CREATE TABLE expression_links (
-                link_id INTEGER PRIMARY KEY,
-                expression_name TEXT,
-                target_lemma TEXT
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                expression_article_id TEXT,
+                target_lemma TEXT,
+                target_article_id TEXT,
+                FOREIGN KEY (expression_article_id) REFERENCES articles (article_id)
             )
         ''')
         
@@ -341,47 +361,49 @@ class TestSearchFunctions(unittest.TestCase):
         ''', test_articles)
         
         test_definitions = [
-            (1, 1, 'bygning som folk bor i'),
-            (2, 1, 'bygning generelt'),
-            (3, 2, 'å gi husly til noen'),
-            (4, 3, 'arbeid som gjøres i hjemmet'),
-            (5, 4, 'hjemme hos noen'),
-            (6, 5, 'motorisert kjøretøy'),
-            (7, 6, 'prøve eller eksperiment'),
-            (8, 7, 'prosessen med å teste'),
+            # (id, article_id, definition_id, parent_id, level, content, order_num)
+            (1, '1', 1, None, 1, 'bygning som folk bor i', 1),
+            (2, '1', 2, None, 1, 'bygning generelt', 2),
+            (3, '2', 3, None, 1, 'å gi husly til noen', 1),
+            (4, '3', 4, None, 1, 'arbeid som gjøres i hjemmet', 1),
+            (5, '4', 5, None, 1, 'hjemme hos noen', 1),
+            (6, '5', 6, None, 1, 'motorisert kjøretøy', 1),
+            (7, '6', 7, None, 1, 'prøve eller eksperiment', 1),
+            (8, '7', 8, None, 1, 'prosessen med å teste', 1),
         ]
         
         cursor.executemany('''
-            INSERT INTO definitions VALUES (?, ?, ?)
+            INSERT INTO definitions VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', test_definitions)
         
         test_examples = [
-            (1, 1, 'Han bor i et stort hus'),
-            (2, 1, 'Huset er rødt'),
-            (3, 2, 'De huser mange flyktninger'),
-            (4, 3, 'Hun gjorde husarbeid hele dagen'),
-            (5, 5, 'Bilen er ny'),
-            (6, 6, 'Dette er en test'),
-            (7, 7, 'Testing er viktig'),
+            # (id, article_id, definition_id, quote, explanation)
+            (1, '1', 1, 'Han bor i et stort hus', None),
+            (2, '1', 1, 'Huset er rødt', None),
+            (3, '2', 3, 'De huser mange flyktninger', None),
+            (4, '3', 4, 'Hun gjorde husarbeid hele dagen', None),
+            (5, '5', 6, 'Bilen er ny', None),
+            (6, '6', 7, 'Dette er en test', None),
+            (7, '7', 8, 'Testing er viktig', None),
         ]
         
         cursor.executemany('''
-            INSERT INTO examples VALUES (?, ?, ?)
+            INSERT INTO examples VALUES (?, ?, ?, ?, ?)
         ''', test_examples)
         
         test_expressions = [
-            (1, 'på huset', 'hus'),
-            (2, 'bil test', 'bil'),
+            # (id, expression_article_id, target_lemma, target_article_id)
+            (1, '4', 'hus', '1'),  # Link from expression 'på huset' to 'hus'
         ]
         
         cursor.executemany('''
-            INSERT INTO expression_links VALUES (?, ?, ?)
+            INSERT INTO expression_links (id, expression_article_id, target_lemma, target_article_id) VALUES (?, ?, ?, ?)
         ''', test_expressions)
         
         # Create indexes for testing
         cursor.execute('CREATE INDEX idx_lemma ON articles(lemma)')
-        cursor.execute('CREATE INDEX idx_definitions ON definitions(definition_text)')
-        cursor.execute('CREATE INDEX idx_examples ON examples(example_text)')
+        cursor.execute('CREATE INDEX idx_definitions ON definitions(content)')
+        cursor.execute('CREATE INDEX idx_examples ON examples(quote)')
         
         self.conn.commit()
     
@@ -407,10 +429,11 @@ class TestSearchFunctions(unittest.TestCase):
         results = search_exact(self.conn, "på huset", include_expr=False)
         self.assertEqual(len(results), 0)
     
-    def test_search_exact_case_sensitive(self):
-        """Test search_exact is case sensitive."""
+    def test_search_exact_case_insensitive(self):
+        """Test search_exact is case insensitive (Norwegian dictionary behavior)."""
         results = search_exact(self.conn, "HUS")
-        self.assertEqual(len(results), 0)
+        # Should find "hus" even with uppercase input due to COLLATE NOCASE
+        self.assertGreater(len(results), 0)
     
     def test_search_prefix_found(self):
         """Test search_prefix finds words with prefix."""

@@ -12,7 +12,6 @@ import tempfile
 from pathlib import Path
 
 
-@unittest.skip("Integration test - requires full app setup and may freeze")
 class TestOrdbFunctionality(unittest.TestCase):
     """Test all ordb command-line functionality."""
     
