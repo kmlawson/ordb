@@ -284,25 +284,16 @@ The test suite includes both unit tests and integration tests:
 python -m unittest discover tests/ -p "test_*_unit.py" -v
 ```
 
-**Integration Tests** (114 tests, all skipped, requires database):
+**Integration Tests** (112 tests, all passing, requires ordb installed):
 ```bash
-# First ensure you have the database installed
-ordb --help  # This will prompt to install database if needed
+# First ensure ordb is installed (will prompt to install database if needed)
+ordb --help
 
-# Run integration tests (may take time)
-./tests/run_integration_tests.sh
-
-# Or run all tests including integration tests
-python -m unittest discover tests/ -v
+# Run all tests including integration tests
+./tests/run_all_tests.sh
 ```
 
-**Note**: Integration tests are currently marked with `@unittest.skip` because they:
-- Launch the full ordb application 
-- May prompt for user input
-- Require the database to be installed
-- Can timeout in CI environments
-
-To run them, remove the `@unittest.skip` decorators or use the `run_integration_tests.sh` script.
+**Note**: Integration tests require ordb to be installed and work correctly as long as the application is properly set up with the database.
 
 ### Building Database
 
