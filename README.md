@@ -103,15 +103,42 @@ ordb -e word                # Etymology only
 ordb -i word                # Inflections only (multiline format)
 ordb --no-definitions word  # Hide definitions
 ordb --no-examples word     # Hide examples
+ordb --max-examples 3 word  # Limit to 3 examples per definition
+```
+
+### Words-Only Output
+```bash
+ordb -w hus@                # Comma-separated list of all matching words
+ordb -W hus@                # Matching words, one per line (no other text)
+```
+
+### Random Entries
+```bash
+ordb -r                     # Get 1 random dictionary entry with full definition
+ordb -r5                    # Get 5 random dictionary entries
+ordb -R                     # Get 1 random word only (no definition)
+ordb -R10                   # Get 10 random words, one per line
+```
+
+### Advanced Options
+```bash
+ordb -t 0.8 -f word         # Fuzzy search with custom similarity threshold (0.0-1.0)
+ordb -p word                # Force pagination even when disabled in config
+ordb -v                     # Show version information
+ordb -s                     # Show comprehensive dictionary statistics
+ordb --test                 # Run test searches with predefined words
+ordb --db /path/to/db       # Use custom database file path
+```
+
+### Configuration Management
+```bash
+ordb -c                     # Launch interactive configuration wizard
+ordb -C                     # Display raw configuration file contents
 ```
 
 ## Configuration
 
-ordb uses a configuration file to customize colors, search behavior, and display options. The configuration is automatically created when you run the script the first time with a series of defaults but you can easily update this using the interactive configuration wizard:
-
-```bash
-ordb -c
-```
+ordb uses a configuration file to customize colors, search behavior, and display options. The configuration is automatically created when you run the script the first time with a series of defaults but you can easily update this using the interactive configuration wizard.
 
 ### Configuration Locations
 ordb looks for configuration files in platform-appropriate locations:
