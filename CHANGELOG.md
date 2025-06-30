@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5] - 2025-06-30
+
+### Fixed
+- **Python Version Compatibility**: Restored Python 3.13 requirement in Homebrew formula after temporary downgrade
+- **Version Synchronization**: Fixed version mismatch between package metadata and source code
+
 ## [0.5.3] - 2025-06-30
 
 ### Fixed
