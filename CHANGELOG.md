@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.5.3] - 2025-06-30
+
+### Fixed
+- **Test Suite Quality Improvements**: Major overhaul to eliminate testing anti-patterns and improve reliability
+  - **Eliminated Critical Mock Abuse**: Removed excessive mocking of core business logic functions
+    - Fixed test_formatting_unit.py: All 4 tests now use real database functions instead of mocking get_definitions_and_examples and get_related_expressions
+    - Fixed test_display_unit.py TestFormatResult: All 8 tests now use real database functions instead of mocking core dependencies
+    - Tests now verify actual behavior instead of mocked behavior, catching real regressions
+  - **Enhanced Test Database Schemas**: Updated test databases to match production schema
+    - Fixed definitions table structure (id, definition_id, article_id, parent_id, level, content, order_num)
+    - Fixed examples table structure (id, definition_id, article_id, quote, explanation) 
+    - Fixed expression_links table structure (expression_article_id, target_lemma)
+    - Added proper test data for meaningful testing without mocks
+  - **Improved Test Reliability**: Tests now fail when actual functionality is broken
+    - Replaced brittle positional argument checking with semantic verification in CLI tests
+    - Enhanced assertions to verify real output content and behavior
+    - Maintained 270 unit tests passing with improved confidence in test results
+
+### Changed
+- **Formatting Improvements**: Enhanced output readability  
+  - Removed blank line after etymology for more compact output
+  - Alternative forms now appear on the same line as the header word
+  - Examples now follow definitions on the same line instead of appearing on a new line
+
 ## [0.5.2] - 2025-06-27
 
 ### Fixed

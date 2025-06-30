@@ -2,23 +2,30 @@
 
 - This tool ordb was created in June, 2025 by Claude Code with Konrad Lawson at the controls
 - This file contains guidelines for Claude Code to keep in context as it works with the files:
+- Always begin by reading README.md for overview of this software. 
 
-- Read README.md for overview of this software. 
-- Directory structure to adhere to requirements of PyPi
+## Structure
+
+- Directory structure should adhere to requirements of PyPi
 - Database related files and scripts in directory db/
 - Documentation related files in directory docs/
 - Tests available in directory tests/
 - Main scripts in src/
+
+## Testing Driven Development
+
+- whenever you are going to create a new feature, create a test for it first in tests/ which fails and then implement the feature, and get the test passing. 
+
+## General Guidelines
+
 - Whenever you fix, add, or change things, be sure to update the CHANGELOG. 
-- When commiting to git, make appropriate version bumps (minor and match) according to semantic versioning principals. Confirm with user when doing this. 
+- Only push origin to github when I give you the word, but you can commit when completing a fix. When commiting to git, only make version bumps (minor and match) with confirmation from the user, and then according to semantic versioning principals. Confirm with user when doing this. 
 - We are never at 1.0 until the user explicitly says we are. 
-- The database articles.db is our sqlite database and article.json is the original flat file it comes from.
-- You often crash by running out of memory when you try to rg or grep overly large parts of article.json which is over 100MB in size. Make sure that when you want to revisit that file, you do so in a highly targeted search or import the json via python interact with it there. 
 - If you have to recreate the database using json-to-db.py (and please do not create more of these, just edit the one you have) then keep in mind that the database may have to be regenerated multiple times and it keeps the replacements of abbreviations etc. that were fixed in previous versions. 
-- The ordb (ordb.py) is used to search for words. Any of those words can be found in its official online version with https://ordbokene.no/nno/bm/[search term] so, ordb hus should roughly produce similar content as https://ordbokene.no/nno/bm/hus and so on. I will often complain when data is present in the web version but not found in the output of the script. 
+- The ordb command should produce similarly comprehensive results as the web version of hte same. Any of those words can be found in its official online version with https://ordbokene.no/nno/bm/[search term] so, ordb hus should roughly produce similar content as https://ordbokene.no/nno/bm/hus and so on. I will often complain when data is present in the web version but not found in the output of the script. 
 - problems and future features are listed in TODO.md - when you complete one of the items, put a green check mark at the beginning of the bullet point. 
 - When you fix things or add features, don't delete existing functionality.
-- Always fix things for general application, never hard code fixes for a specific word.
+- Always fix things for general application, you MUST NOT hard code fixes for a specific word.
 - when you fix something, make a test to check for it in future, and save all tests in the directory "tests"
 - YOU MUST NOT forget to read files before you write to them.
 

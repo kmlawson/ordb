@@ -487,6 +487,13 @@ def format_result(conn, result, show_definitions=True, show_examples=True, max_e
     if gender:
         header += f" ({format_gender(gender)})"
     
+    # Add alternative forms to header line
+    if all_lemmas and all_lemmas != lemma:
+        other_lemmas = [l for l in all_lemmas.split(' | ') if l != lemma]
+        if other_lemmas:
+            highlighted_lemmas = [highlight_search_term(l, search_term) for l in other_lemmas]
+            header += f" {Colors.INFO}Alternative forms: {Colors.END}{', '.join(highlighted_lemmas)}"
+    
     output.append(header)
     
     # If only_examples is True, skip all other info and just show examples
@@ -564,18 +571,15 @@ def format_result(conn, result, show_definitions=True, show_examples=True, max_e
             output.append(f"  {Colors.INFO}No inflections available{Colors.END}")
         return '\n'.join(output)
     
-    # Alternative lemmas
-    if all_lemmas and all_lemmas != lemma:
-        other_lemmas = [l for l in all_lemmas.split(' | ') if l != lemma]
-        if other_lemmas:
-            highlighted_lemmas = [highlight_search_term(l, search_term) for l in other_lemmas]
-            output.append(f"  {Colors.INFO}Alternative forms: {Colors.END}{', '.join(highlighted_lemmas)}")
+    # Blank line after header (unless in special modes)
+    if not (only_examples or only_etymology or only_inflections):
+        output.append("")
     
-    output.append("")
+    # Get definitions and examples
+    definitions, examples_by_def = get_definitions_and_examples(conn, article_id)
     
-    # Get and display definitions
+    # Display definitions if requested
     if show_definitions:
-        definitions, examples_by_def = get_definitions_and_examples(conn, article_id)
         
         if definitions:
             pass
@@ -610,46 +614,61 @@ def format_result(conn, result, show_definitions=True, show_examples=True, max_e
                     
                     # Make main definition content bold but not colored
                     colored_content = f"{Colors.BOLD}{main_def}{Colors.END}"
-                    output.append(f"{indent}{bullet} {colored_content}")
+                    
+                    # Prepare examples for this definition if they exist
+                    examples_text = ""
+                    if show_examples and def_row_id in examples_by_def:
+                        examples = examples_by_def[def_row_id]
+                        if max_examples:
+                            examples = examples[:max_examples]
+                        
+                        if examples:
+                            example_texts = []
+                            for quote, explanation in examples:
+                                highlighted_quote = highlight_search_term(quote, search_term, Colors.EXAMPLE)
+                                example_text = f'"{highlighted_quote}"'
+                                if explanation:
+                                    example_text += f" ({explanation})"
+                                example_texts.append(example_text)
+                            
+                            # Join examples with semicolon and space
+                            examples_text = f" {'; '.join(example_texts)}"
+                            
+                            if max_examples and len(examples_by_def[def_row_id]) > max_examples:
+                                remaining = len(examples_by_def[def_row_id]) - max_examples
+                                examples_text += f" {Colors.INFO}... and {remaining} more example(s){Colors.END}"
+                    
+                    # Combine definition and examples on same line
+                    output.append(f"{indent}{bullet} {colored_content}{examples_text}")
                     
                     # Add compound words on separate line if present
                     if compound_part:
                         output.append(f"{indent}    {compound_part}")
+    
+    # If definitions weren't shown but examples should be, show them separately
+    elif show_examples and examples_by_def:
+        for def_row_id, examples in examples_by_def.items():
+            if examples:
+                example_texts = []
+                for quote, explanation in examples:
+                    highlighted_quote = highlight_search_term(quote, search_term, Colors.EXAMPLE)
+                    example_text = f'"{highlighted_quote}"'
+                    if explanation:
+                        example_text += f" ({explanation})"
+                    example_texts.append(example_text)
                 
-                # Show examples for this definition (semicolon-separated)
-                if show_examples and def_row_id in examples_by_def:
-                    examples = examples_by_def[def_row_id]
-                    if max_examples:
-                        examples = examples[:max_examples]
-                    
-                    if examples:
-                        example_texts = []
-                        for quote, explanation in examples:
-                            highlighted_quote = highlight_search_term(quote, search_term, Colors.EXAMPLE)
-                            example_text = f'"{highlighted_quote}"'
-                            if explanation:
-                                example_text += f" ({explanation})"
-                            example_texts.append(example_text)
-                        
-                        # Join examples with semicolon and space
-                        examples_line = "; ".join(example_texts)
-                        output.append(f"{indent}    {examples_line}")
-                    
-                    if max_examples and len(examples_by_def[def_row_id]) > max_examples:
-                        remaining = len(examples_by_def[def_row_id]) - max_examples
-                        output.append(f"{indent}    {Colors.INFO}... and {remaining} more example(s){Colors.END}")
+                examples_line = "; ".join(example_texts)
+                output.append(f"  {examples_line}")
     
     # Etymology (after definitions)
     if search_config.show_etymology and etymology:
         output.append(f"  {Colors.ETYMOLOGY}Etymology: {Colors.END}{etymology}")
-        output.append("")
     
     # Inflection table (after etymology)
     if search_config.show_inflections:
         table_output = format_inflection_table(inflection_table, word_class, lemma)
         if table_output:
             output.append(table_output)
-            output.append("")
     
     # Fixed expressions (only for main entries, not for expressions themselves, and only if explicitly requested)
     if word_class != 'EXPR' and show_expressions:

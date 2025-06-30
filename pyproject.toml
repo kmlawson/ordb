@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ordb"
-version = "0.5.2"
+version = "0.5.3"
 description = "A fast, feature-rich command-line tool for searching the Norwegian bokmål dictionary with interactive search, cross-platform support, and comprehensive Norwegian language features"
 readme = "README.md"
 requires-python = ">=3.8"

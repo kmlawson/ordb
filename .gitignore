@@ -41,3 +41,5 @@ uv.lock
 
 # Development documentation (not for public repo)
 README-DEV.md
+docs/UPDATING.md
+TODO.md

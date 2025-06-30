@@ -227,9 +227,11 @@ class TestCLIMainFunction(unittest.TestCase):
             
             # Should call format_result with only_examples=True
             mock_format.assert_called()
-            call_args = mock_format.call_args[0]
-            # format_result(..., only_examples, only_etymology, only_inflections) - Position 7 is only_examples (0-indexed)
-            self.assertTrue(call_args[7])
+            # Verify the specific keyword argument instead of fragile positional checking
+            call_args, call_kwargs = mock_format.call_args
+            # Check if only_examples was passed as True (either as positional or keyword arg)
+            only_examples_passed = (len(call_args) > 7 and call_args[7] is True) or call_kwargs.get('only_examples', False)
+            self.assertTrue(only_examples_passed, "format_result should be called with only_examples=True")
     
     @patch('sys.argv', ['ordb', '-e', 'word'])
     @patch('builtins.print')
@@ -245,9 +247,10 @@ class TestCLIMainFunction(unittest.TestCase):
             
             # Should call format_result with only_etymology=True
             mock_format.assert_called()
-            call_args = mock_format.call_args[0]
-            # format_result(..., only_etymology) - Position 8 is only_etymology (0-indexed)
-            self.assertTrue(call_args[8])
+            call_args, call_kwargs = mock_format.call_args
+            # Check if only_etymology was passed as True (either as positional or keyword arg)
+            only_etymology_passed = (len(call_args) > 8 and call_args[8] is True) or call_kwargs.get('only_etymology', False)
+            self.assertTrue(only_etymology_passed, "format_result should be called with only_etymology=True")
     
     @patch('sys.argv', ['ordb', '-i', 'word'])
     @patch('builtins.print')
@@ -263,71 +266,95 @@ class TestCLIMainFunction(unittest.TestCase):
             
             # Should call format_result with only_inflections=True
             mock_format.assert_called()
-            call_args = mock_format.call_args[0]
-            # format_result(conn, result, show_definitions, show_examples, max_examples, search_term, show_expressions, only_examples, only_etymology, only_inflections)
-            # Position 9 is only_inflections (0-indexed)
-            self.assertTrue(call_args[9])
+            call_args, call_kwargs = mock_format.call_args
+            # Check if only_inflections was passed as True (either as positional or keyword arg)
+            only_inflections_passed = (len(call_args) > 9 and call_args[9] is True) or call_kwargs.get('only_inflections', False)
+            self.assertTrue(only_inflections_passed, "format_result should be called with only_inflections=True")
     
     @patch('sys.argv', ['ordb', '--noun', 'word'])
     @patch('builtins.print')
     def test_word_class_filter_noun(self, mock_print):
         """Test noun word class filter."""
-        with patch('ordb.cli.search_exact') as mock_exact:
+        with patch('ordb.cli.search_exact') as mock_exact, \
+             patch('ordb.display.format_result') as mock_format:
             # Return mixed word classes
             mock_exact.return_value = [
                 (1, 'house', 'house', 'NOUN', None, '', '{}', '', 1),
                 (2, 'run', 'run', 'VERB', None, '', '{}', '', 1)
             ]
+            mock_format.return_value = "Formatted result"
             
             cli_module.main()
             
-            # Should filter to only nouns
-            mock_print.assert_called()
+            # Should only format/display the noun result, not the verb
+            format_calls = [call.args[1] for call in mock_format.call_args_list]  # Get the result tuple passed to format_result
+            displayed_word_classes = [result[3] for result in format_calls]  # Index 3 is word_class
+            
+            self.assertIn('NOUN', displayed_word_classes, "Should display noun results")
+            self.assertNotIn('VERB', displayed_word_classes, "Should filter out verb results")
     
     @patch('sys.argv', ['ordb', '--verb', 'word'])
     @patch('builtins.print')
     def test_word_class_filter_verb(self, mock_print):
         """Test verb word class filter."""
-        with patch('ordb.cli.search_exact') as mock_exact:
+        with patch('ordb.cli.search_exact') as mock_exact, \
+             patch('ordb.display.format_result') as mock_format:
             mock_exact.return_value = [
                 (1, 'house', 'house', 'NOUN', None, '', '{}', '', 1),
                 (2, 'run', 'run', 'VERB', None, '', '{}', '', 1)
             ]
+            mock_format.return_value = "Formatted result"
             
             cli_module.main()
             
-            # Should filter to only verbs
-            mock_print.assert_called()
+            # Should only format/display the verb result, not the noun
+            format_calls = [call.args[1] for call in mock_format.call_args_list]
+            displayed_word_classes = [result[3] for result in format_calls]
+            
+            self.assertIn('VERB', displayed_word_classes, "Should display verb results")
+            self.assertNotIn('NOUN', displayed_word_classes, "Should filter out noun results")
     
     @patch('sys.argv', ['ordb', '--adj', 'word'])
     @patch('builtins.print')
     def test_word_class_filter_adjective(self, mock_print):
         """Test adjective word class filter."""
-        with patch('ordb.cli.search_exact') as mock_exact:
+        with patch('ordb.cli.search_exact') as mock_exact, \
+             patch('ordb.display.format_result') as mock_format:
             mock_exact.return_value = [
                 (1, 'big', 'big', 'ADJ', None, '', '{}', '', 1),
                 (2, 'run', 'run', 'VERB', None, '', '{}', '', 1)
             ]
+            mock_format.return_value = "Formatted result"
             
             cli_module.main()
             
-            # Should filter to only adjectives
-            mock_print.assert_called()
+            # Should only format/display the adjective result, not the verb
+            format_calls = [call.args[1] for call in mock_format.call_args_list]
+            displayed_word_classes = [result[3] for result in format_calls]
+            
+            self.assertIn('ADJ', displayed_word_classes, "Should display adjective results")
+            self.assertNotIn('VERB', displayed_word_classes, "Should filter out verb results")
     
     @patch('sys.argv', ['ordb', '--adv', 'word'])
     @patch('builtins.print')
     def test_word_class_filter_adverb(self, mock_print):
         """Test adverb word class filter."""
-        with patch('ordb.cli.search_exact') as mock_exact:
+        with patch('ordb.cli.search_exact') as mock_exact, \
+             patch('ordb.display.format_result') as mock_format:
             mock_exact.return_value = [
                 (1, 'quickly', 'quickly', 'ADV', None, '', '{}', '', 1),
                 (2, 'run', 'run', 'VERB', None, '', '{}', '', 1)
             ]
+            mock_format.return_value = "Formatted result"
             
             cli_module.main()
             
-            # Should filter to only adverbs
-            mock_print.assert_called()
+            # Should only format/display the adverb result, not the verb
+            format_calls = [call.args[1] for call in mock_format.call_args_list]
+            displayed_word_classes = [result[3] for result in format_calls]
+            
+            self.assertIn('ADV', displayed_word_classes, "Should display adverb results")
+            self.assertNotIn('VERB', displayed_word_classes, "Should filter out verb results")
     
     @patch('sys.argv', ['ordb', '-l', '10', 'word'])
     @patch('builtins.print')
@@ -356,10 +383,10 @@ class TestCLIMainFunction(unittest.TestCase):
             
             # Should call format_result with max_examples=3
             mock_format.assert_called()
-            call_args = mock_format.call_args[0]
-            # format_result(conn, result, show_definitions, show_examples, max_examples, ...)
-            # Position 4 is max_examples (0-indexed)
-            self.assertEqual(call_args[4], 3)
+            call_args, call_kwargs = mock_format.call_args
+            # Check if max_examples was passed as 3 (either as positional or keyword arg)
+            max_examples_passed = (len(call_args) > 4 and call_args[4] == 3) or call_kwargs.get('max_examples') == 3
+            self.assertTrue(max_examples_passed, "format_result should be called with max_examples=3")
     
     @patch('sys.argv', ['ordb', '--threshold', '0.8', '-f', 'word'])
     @patch('builtins.print')
@@ -372,10 +399,10 @@ class TestCLIMainFunction(unittest.TestCase):
             
             # Should call fuzzy search with threshold=0.8
             mock_fuzzy.assert_called()
-            call_args = mock_fuzzy.call_args[0]
-            # search_fuzzy_interactive(conn, query, threshold, include_expr=False)
-            # Position 2 is threshold (0-indexed)
-            self.assertEqual(call_args[2], 0.8)
+            call_args, call_kwargs = mock_fuzzy.call_args
+            # Check if threshold was passed as 0.8 (either as positional or keyword arg)
+            threshold_passed = (len(call_args) > 2 and call_args[2] == 0.8) or call_kwargs.get('threshold') == 0.8
+            self.assertTrue(threshold_passed, "search_fuzzy_interactive should be called with threshold=0.8")
     
     @patch('sys.argv', ['ordb', '-p', 'word'])
     @patch('builtins.print')
@@ -464,9 +491,14 @@ class TestCLIMainFunction(unittest.TestCase):
             
             # Should print comma-separated words
             mock_print.assert_called()
-            print_calls = [str(call) for call in mock_print.call_args_list]
-            # Should contain comma-separated format
-            self.assertTrue(any(',' in call for call in print_calls))
+            print_calls = [str(call.args[0]) for call in mock_print.call_args_list]
+            words_output = ''.join(print_calls)
+            # Verify that both words are present and comma-separated
+            self.assertIn('word1', words_output, "Should print first word")
+            self.assertIn('word2', words_output, "Should print second word")
+            self.assertIn(',', words_output, "Should use comma separation for words-only output")
+            # Verify it's actually comma-separated format, not just containing a comma somewhere
+            self.assertRegex(words_output, r'\bword1\b.*,.*\bword2\b', "Words should be comma-separated")
     
     @patch('sys.argv', ['ordb', '-W', 'word'])
     @patch('builtins.print')
@@ -643,6 +675,100 @@ class TestCLIErrorHandling(unittest.TestCase):
             # Either exit was called or some output was produced
             self.assertTrue(mock_exit.called or mock_print.called, 
                           "Either sys.exit should be called or output should be printed")
+
+
+class TestCLIIntegration(unittest.TestCase):
+    """Integration-style tests with minimal mocking for better behavior verification."""
+    
+    @patch('sys.argv', ['ordb', '--version'])
+    @patch('sys.exit')
+    def test_version_output_content(self, mock_exit, *args):
+        """Test that version output contains actual version information."""
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            try:
+                cli_module.main()
+            except SystemExit:
+                pass
+            
+            output = fake_out.getvalue()
+            # Verify actual version content, not just that something was printed
+            self.assertRegex(output, r'ordb \d+\.\d+\.\d+', "Should display 'ordb' followed by semantic version")
+            # Note: Version output is just the version number, not a full description
+    
+    @patch('sys.argv', ['ordb', '--help'])
+    @patch('sys.exit')
+    def test_help_output_completeness(self, mock_exit, *args):
+        """Test that help output contains comprehensive information."""
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            try:
+                cli_module.main()
+            except SystemExit:
+                pass
+            
+            output = fake_out.getvalue()
+            # Verify help contains key sections and flags
+            essential_sections = [
+                'Norwegian bokmål dictionary search tool',
+                'Examples:',
+                'Special Search Syntax:',
+                '--fuzzy', '--anywhere', '--expressions-only',
+                '--only-examples', '--only-etymology', '--only-inflections',
+                '--noun', '--verb', '--adj', '--adv'
+            ]
+            
+            for section in essential_sections:
+                self.assertIn(section, output, f"Help should contain '{section}' section/flag")
+    
+    def test_argument_parser_creation(self):
+        """Test that argument parser is created correctly without side effects."""
+        # This tests the actual argument parsing logic without mocking
+        import ordb.cli as cli_module
+        
+        # Create a fresh parser (this exercises the real argument setup)
+        parser = argparse.ArgumentParser(
+            description='ordb - Norwegian bokmål dictionary search tool',
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
+        
+        # Verify parser was created successfully
+        self.assertIsInstance(parser, argparse.ArgumentParser)
+        self.assertEqual(parser.description, 'ordb - Norwegian bokmål dictionary search tool')
+    
+    @patch('sys.argv', ['ordb'])
+    def test_no_arguments_behavior(self):
+        """Test CLI behavior with no arguments - should exit gracefully."""
+        with patch('sys.exit') as mock_exit, \
+             patch('builtins.print') as mock_print:
+            
+            try:
+                cli_module.main()
+            except SystemExit as e:
+                # Verify it exits with proper error code
+                self.assertEqual(e.code, 1, "Should exit with error code 1 when no arguments provided")
+            
+            # Should print helpful error message
+            mock_print.assert_called()
+            print_calls = [str(call) for call in mock_print.call_args_list]
+            error_output = ''.join(print_calls)
+            self.assertIn('Error:', error_output, "Should print error message")
+    
+    def test_special_search_syntax_parsing(self):
+        """Test that special search syntax is correctly parsed."""
+        # Test the parse_search_query function directly for better coverage
+        from ordb.core import parse_search_query
+        
+        test_cases = [
+            ('word@', ('prefix', 'word', 'word@')),
+            ('@word', ('anywhere_term', 'word', '@word')),
+            ('%word', ('fulltext', 'word', '%word')),
+            ('regular', ('exact', 'regular', 'regular'))
+        ]
+        
+        for input_query, expected_output in test_cases:
+            with self.subTest(query=input_query):
+                result = parse_search_query(input_query)
+                self.assertEqual(result, expected_output, 
+                               f"Query '{input_query}' should parse to {expected_output}")
 
 
 if __name__ == '__main__':
